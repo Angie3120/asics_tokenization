@@ -1,13 +1,13 @@
 require("truffle-test-utils").init();
 
-const ZionodesToken = artifacts.require("ZionodesToken");
+const ZionodesTokenFactory = artifacts.require("ZionodesTokenFactory");
 const utils = require("./helpers/utils");
 
-contract("ZionodesToken", (accounts) => {
+contract("ZionodesTokenFactory", (accounts) => {
     [bob, alice] = accounts;
 
     beforeEach(async () => {
-        contract = await ZionodesToken().new();
+        contract = await ZionodesTokenFactory.new();
     });
 
 });

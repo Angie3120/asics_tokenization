@@ -2,10 +2,11 @@
 pragma solidity >=0.5.0 <0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/GSN/Context.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract ZionodesToken is IERC20, Context {
+import "./Roles.sol";
+
+contract ZionodesToken is IERC20, Roles {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _balances;
@@ -18,12 +19,14 @@ contract ZionodesToken is IERC20, Context {
     string private _name;
     string private _symbol;
 
-    constructor (
+    constructor
+    (
         string memory name,
         string memory symbol,
         uint8 decimals,
         uint256 totalSupply
     )
+        Roles(_msgSender())
         public
     {
         _name = name;

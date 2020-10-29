@@ -7,7 +7,7 @@ contract("ZionodesTokenFactory", (accounts) => {
     [bob, alice] = accounts;
 
     beforeEach(async () => {
-        contract = await ZionodesTokenFactory().new();
+        contract = await ZionodesTokenFactory.new();
     });
 
 });

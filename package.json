@@ -1,0 +1,29 @@
+{
+  "name": "zionodes_token_eth",
+  "version": "0.0.1",
+  "engines": {
+    "node": "11.6.x",
+    "npm": "6.5.x"
+  },
+  "devDependencies": {
+    "concurrently": "^5.3.0",
+    "eth-gas-reporter": "^0.2.18",
+    "ganache-cli": "^6.12.1",
+    "openzeppelin-solidity": "^3.2.0",
+    "truffle": "^5.1.50",
+    "truffle-test-utils": "^0.1.0"
+  },
+  "scripts": {
+    "ganache": "ganache-cli --networkId $npm_package_config_ganache_networkId --allowUnlimitedContractSize --gasLimit $npm_package_config_ganache_gasLimit --gasPrice $npm_package_config_ganache_gasPrice --mnemonic \"$MNEMONIC\"",
+    "start": "concurrently \"npm run ganache\" \"npm run migrate\"",
+    "migrate": "rm -rf build && truffle migrate --reset --compile-all --network development",
+    "test": "concurrently \"npm run ganache\" \"npm run migrate && truffle test\" --kill-others --success first"
+  },
+  "config": {
+    "ganache": {
+      "networkId": 3431,
+      "gasPrice": 25000000000,
+      "gasLimit": 6500000
+    }
+  }
+}

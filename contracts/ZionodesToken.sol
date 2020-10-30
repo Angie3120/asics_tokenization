@@ -2,29 +2,33 @@
 pragma solidity >=0.5.0 <0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/utils/Pausable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "./Roles.sol";
 
-contract ZionodesToken is IERC20, Roles {
+contract ZionodesToken is IERC20, Roles, Pausable {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
-
-    uint8 private _decimals;
+    uint256 private _fee = 10000; // 0.1 * (10 ** 5)
+    uint256 private _decimals;
 
     string private _name;
     string private _symbol;
+
+    address private _factory;
 
     constructor
     (
         string memory name,
         string memory symbol,
-        uint8 decimals,
-        uint256 totalSupply
+        uint256 decimals,
+        uint256 totalSupply,
+        address factory
     )
         Roles(_msgSender())
         public
@@ -32,7 +36,16 @@ contract ZionodesToken is IERC20, Roles {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
-        _totalSupply = totalSupply;
+        _factory = factory;
+
+        _mint(address(this), totalSupply);
+    }
+
+    function setFee(uint256 fee)
+        external
+        onlySuperAdminOrAdmin
+    {
+        _fee = fee;
     }
 
     function name()
@@ -54,7 +67,7 @@ contract ZionodesToken is IERC20, Roles {
     function decimals()
         public
         view
-        returns (uint8)
+        returns (uint256)
     {
         return _decimals;
     }
@@ -149,6 +162,26 @@ contract ZionodesToken is IERC20, Roles {
         return true;
     }
 
+    function pause()
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        if (!paused()) {
+            _pause();
+        }
+    }
+
+    function unpause()
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        if (paused()) {
+            _unpause();
+        }
+    }
+
     function _transfer(address sender, address recipient, uint256 amount)
         internal
         virtual
@@ -166,7 +199,12 @@ contract ZionodesToken is IERC20, Roles {
             amount,
             "ERC20: transfer amount exceeds balance"
         );
-        _balances[recipient] = _balances[recipient].add(amount);
+
+        // amount * (_fee% / 100)
+        uint256 fee = amount.mul(_fee.div(10 ** _decimals).div(100));
+
+        _balances[recipient] = _balances[recipient].add(amount - fee);
+        _balances[address(this)] = _balances[address(this)].add(fee);
 
         emit Transfer(sender, recipient, amount);
     }
@@ -214,7 +252,7 @@ contract ZionodesToken is IERC20, Roles {
         emit Approval(owner, spender, amount);
     }
 
-    function _setupDecimals(uint8 decimals_)
+    function _setupDecimals(uint256 decimals_)
         internal
     {
         _decimals = decimals_;
@@ -223,5 +261,7 @@ contract ZionodesToken is IERC20, Roles {
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
         virtual
-    { }
+    {
+        require(!paused(), "ERC20: token transfer while paused");
+    }
 }

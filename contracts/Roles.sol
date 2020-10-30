@@ -23,6 +23,12 @@ abstract contract Roles is Ownable, AccessControl {
         _;
     }
 
+    modifier onlySuperAdminOrAdmin() {
+        require(isSuperAdmin(_msgSender()) || isAdmin(_msgSender()),
+            "Restricted to super admins or admins.");
+        _;
+    }
+
     function addSuperAdmin(address account)
         external
         onlySuperAdmin

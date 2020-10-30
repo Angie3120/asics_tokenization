@@ -21,9 +21,12 @@
     },
     "config": {
         "ganache": {
-        "networkId": 3431,
-        "gasPrice": 25000000000,
-        "gasLimit": 6500000
+            "networkId": 3431,
+            "gasPrice": 25000000000,
+            "gasLimit": 6500000
         }
+    },
+    "dependencies": {
+        "truffle-assertions": "^0.9.2"
     }
 }

@@ -12,14 +12,28 @@ contract("ZionodesTokenFactory", (accounts) => {
     });
 
     it("deploy token", async () => {
-        let token = await contract.deployToken("Bitmain Antminer S15+28", "S15+28", 0, 50, { from: bob });
-        let address = await contract.getTokenAddress("S15+28", { from: bob });
+        let token = await contract.deployZToken("Bitmain Antminer S15+28", "S15+28", 0, 50, { from: bob });
+        let address = await contract.getZTokenAddress("S15+28", { from: bob });
 
         truffleAssert.eventEmitted(token, 'TokenDeployed', (event) => {
             return event.addr === address;
         });
 
-        assert.equal(0, await contract.getTokenAddress("S15"));
+        assert.equal(0, await contract.getZTokenAddress("S15"));
+    });
+
+    it("set price for ZToken and check it", async () => {
+        let price;
+
+        await contract.deployZToken("Bitmain Antminer S15+28", "S15+28", 0, 50, { from: bob });
+        await contract.setupPricesForToken("S15+28", [{symbol: "USDT", price: 12000}, {symbol: "DAI", price: 13300}], { from: bob });
+
+        price = await contract.getZTokenPriceByToken("S15+28", "DAI");
+        assert.equal(price, 13300);
+        price = await contract.getZTokenPriceByToken("S15+28", "USDT");
+        assert.equal(price, 12000);
+        price = await contract.getZTokenPriceByToken("S15+28", "XTZ");
+        assert.equal(price, 0);
     });
 
 });

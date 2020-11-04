@@ -7,8 +7,9 @@ import "./Roles.sol";
 
 contract ZionodesTokenFactory is Roles {
     struct ZToken {
-        mapping(string => uint256) prices;
+        mapping(string => Price) prices;
         ZionodesToken token;
+        uint256 weiPrice;
         address addr;
         bool initialized;
     }
@@ -16,6 +17,7 @@ contract ZionodesTokenFactory is Roles {
     struct Price {
         string symbol;
         uint256 price;
+        address addr;
     }
 
     mapping(string => ZToken) private _zTokens;
@@ -30,6 +32,11 @@ contract ZionodesTokenFactory is Roles {
 
     modifier zTokenExists(string memory zSymbol) {
         require(_zTokens[zSymbol].initialized, "Token is not deployed yet.");
+        _;
+    }
+
+    modifier zTokenNotPaused(string memory zSymbol) {
+        require(!_zTokens[zSymbol].token.paused(), "Token is paused.");
         _;
     }
 
@@ -62,8 +69,9 @@ contract ZionodesTokenFactory is Roles {
 
             ZToken memory zToken = ZToken({
                 token: tok,
-                initialized: true,
-                addr: address(tok)
+                weiPrice: 0,
+                addr: address(tok),
+                initialized: true
             });
             _zTokens[zSymbol] = zToken;
 
@@ -77,17 +85,27 @@ contract ZionodesTokenFactory is Roles {
         }
     }
 
-    function setupPricesForToken
+    function setupWeiPriceForZToken(string memory zSymbol, uint256 weiPrice)
+        external
+        onlySuperAdminOrAdmin
+        zTokenExists(zSymbol)
+        zTokenNotPaused(zSymbol)
+    {
+        _zTokens[zSymbol].weiPrice = weiPrice;
+    }
+
+    function setupERC20PricesForZToken
     (
         string memory zSymbol,
-        Price[] calldata prices
+        Price[] memory prices
     )
         external
         onlySuperAdminOrAdmin
         zTokenExists(zSymbol)
+        zTokenNotPaused(zSymbol)
     {
         for (uint256 i = 0; i < prices.length; ++i) {
-            _zTokens[zSymbol].prices[prices[i].symbol] = prices[i].price;
+            _zTokens[zSymbol].prices[prices[i].symbol] = prices[i];
         }
     }
 
@@ -99,12 +117,23 @@ contract ZionodesTokenFactory is Roles {
         return address(_zTokens[zSymbol].token);
     }
 
-    function getZTokenPriceByToken(string memory zSymbol, string memory symbol)
+    function getZTokenPriceByERC20Token
+    (
+        string memory zSymbol,
+        string memory symbol
+    )
         external
         view
-        zTokenExists(zSymbol)
         returns (uint256)
     {
-        return _zTokens[zSymbol].prices[symbol];
+        return _zTokens[zSymbol].prices[symbol].price;
+    }
+
+    function getZTokenWeiPrice(string memory zSymbol)
+        external
+        view
+        returns (uint256)
+    {
+        return _zTokens[zSymbol].weiPrice;
     }
 }

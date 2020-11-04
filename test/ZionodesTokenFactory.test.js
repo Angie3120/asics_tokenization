@@ -26,14 +26,23 @@ contract("ZionodesTokenFactory", (accounts) => {
         let price;
 
         await contract.deployZToken("Bitmain Antminer S15+28", "S15+28", 0, 50, { from: bob });
-        await contract.setupPricesForToken("S15+28", [{symbol: "USDT", price: 12000}, {symbol: "DAI", price: 13300}], { from: bob });
 
-        price = await contract.getZTokenPriceByToken("S15+28", "DAI");
-        assert.equal(price, 13300);
-        price = await contract.getZTokenPriceByToken("S15+28", "USDT");
-        assert.equal(price, 12000);
-        price = await contract.getZTokenPriceByToken("S15+28", "XTZ");
+        await contract.setupERC20PricesForZToken("S15+28", [
+            {symbol: "USDT", price: 120 * (10 ** 6), addr: "0xdac17f958d2ee523a2206206994597c13d831ec7"},
+            {symbol: "DAI", price: 133 * (10 ** 6), addr: "0x6b175474e89094c44da98b954eedeac495271d0f"}
+        ], { from: bob });
+        await contract.setupWeiPriceForZToken("S15+28", BigInt(1.8 * (10 ** 18)), { from: bob });
+
+        await utils.shouldThrow(contract.setupWeiPriceForZToken("S17", 2.2 * (10 ** 18), { from: bob }));
+
+        price = await contract.getZTokenPriceByERC20Token("S15+28", "DAI");
+        assert.equal(price, 133 * (10 ** 6));
+        price = await contract.getZTokenPriceByERC20Token("S15+28", "USDT");
+        assert.equal(price, 120 * (10 ** 6));
+        price = await contract.getZTokenPriceByERC20Token("S15+28", "XTZ");
         assert.equal(price, 0);
+        price = await contract.getZTokenWeiPrice("S15+28");
+        assert.equal(price, BigInt(1.8 * (10 ** 18)));
     });
 
 });

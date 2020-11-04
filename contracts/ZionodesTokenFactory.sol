@@ -10,7 +10,6 @@ contract ZionodesTokenFactory is Roles {
         mapping(string => Price) prices;
         ZionodesToken token;
         uint256 weiPrice;
-        address addr;
         bool initialized;
     }
 
@@ -20,23 +19,24 @@ contract ZionodesTokenFactory is Roles {
         address addr;
     }
 
-    mapping(string => ZToken) private _zTokens;
+    mapping(address => ZToken) private _zTokens;
+    mapping(string => address) private _zTokenAdressess;
 
     event TokenDeployed(
-        address indexed addr,
-        string indexed name,
+        address indexed zAddress,
+        string indexed zName,
         string indexed zSymbol,
         uint256 decimals,
         uint256 totalSupply
     );
 
-    modifier zTokenExists(string memory zSymbol) {
-        require(_zTokens[zSymbol].initialized, "Token is not deployed yet.");
+    modifier zTokenExists(address zAddress) {
+        require(_zTokens[zAddress].initialized, "Token is not deployed yet.");
         _;
     }
 
-    modifier zTokenNotPaused(string memory zSymbol) {
-        require(!_zTokens[zSymbol].token.paused(), "Token is paused.");
+    modifier zTokenNotPaused(address zAddress) {
+        require(!_zTokens[zAddress].token.paused(), "Token is paused.");
         _;
     }
 
@@ -47,7 +47,7 @@ contract ZionodesTokenFactory is Roles {
 
     function deployZToken
     (
-        string memory name,
+        string memory zName,
         string memory zSymbol,
         uint256 decimals,
         uint256 totalSupply
@@ -56,11 +56,11 @@ contract ZionodesTokenFactory is Roles {
         onlySuperAdminOrAdmin
         returns (address)
     {
-        if (address(_zTokens[zSymbol].token) == address(0)
-            || _zTokens[zSymbol].token.paused()) {
+        if (_zTokenAdressess[zSymbol] == address(0)
+            || _zTokens[_zTokenAdressess[zSymbol]].token.paused()) {
 
             ZionodesToken tok = new ZionodesToken(
-                name,
+                zName,
                 zSymbol,
                 decimals,
                 totalSupply,
@@ -70,14 +70,14 @@ contract ZionodesTokenFactory is Roles {
             ZToken memory zToken = ZToken({
                 token: tok,
                 weiPrice: 0,
-                addr: address(tok),
                 initialized: true
             });
-            _zTokens[zSymbol] = zToken;
+            _zTokens[address(tok)] = zToken;
+            _zTokenAdressess[zSymbol] = address(tok);
 
             emit TokenDeployed(
                 address(tok),
-                name,
+                zName,
                 zSymbol,
                 decimals,
                 totalSupply
@@ -85,27 +85,27 @@ contract ZionodesTokenFactory is Roles {
         }
     }
 
-    function setupWeiPriceForZToken(string memory zSymbol, uint256 weiPrice)
+    function setupWeiPriceForZToken(address zAddress, uint256 weiPrice)
         external
         onlySuperAdminOrAdmin
-        zTokenExists(zSymbol)
-        zTokenNotPaused(zSymbol)
+        zTokenExists(zAddress)
+        zTokenNotPaused(zAddress)
     {
-        _zTokens[zSymbol].weiPrice = weiPrice;
+        _zTokens[zAddress].weiPrice = weiPrice;
     }
 
     function setupERC20PricesForZToken
     (
-        string memory zSymbol,
+        address zAddress,
         Price[] memory prices
     )
         external
         onlySuperAdminOrAdmin
-        zTokenExists(zSymbol)
-        zTokenNotPaused(zSymbol)
+        zTokenExists(zAddress)
+        zTokenNotPaused(zAddress)
     {
         for (uint256 i = 0; i < prices.length; ++i) {
-            _zTokens[zSymbol].prices[prices[i].symbol] = prices[i];
+            _zTokens[zAddress].prices[prices[i].symbol] = prices[i];
         }
     }
 
@@ -114,26 +114,26 @@ contract ZionodesTokenFactory is Roles {
         view
         returns (address)
     {
-        return address(_zTokens[zSymbol].token);
+        return _zTokenAdressess[zSymbol];
     }
 
     function getZTokenPriceByERC20Token
     (
-        string memory zSymbol,
+        address zAddress,
         string memory symbol
     )
         external
         view
         returns (uint256)
     {
-        return _zTokens[zSymbol].prices[symbol].price;
+        return _zTokens[zAddress].prices[symbol].price;
     }
 
-    function getZTokenWeiPrice(string memory zSymbol)
+    function getZTokenWeiPrice(address zAddress)
         external
         view
         returns (uint256)
     {
-        return _zTokens[zSymbol].weiPrice;
+        return _zTokens[zAddress].weiPrice;
     }
 }

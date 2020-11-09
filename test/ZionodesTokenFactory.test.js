@@ -1,6 +1,9 @@
 require("truffle-test-utils").init();
 
 const truffleAssert = require('truffle-assertions');
+const Web3 = require('web3');
+const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
+
 const ZionodesTokenFactory = artifacts.require("ZionodesTokenFactory");
 const ZionodesToken = artifacts.require("ZionodesToken");
 const utils = require("./helpers/utils");
@@ -58,12 +61,12 @@ contract("ZionodesTokenFactory", (accounts) => {
         zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
         token = await ZionodesToken.at(zAddress);
 
-        await contract.mintZTokens(zAddress, 200, { from: bob });
+        await contract.mintZTokens(zAddress, contract.address, 200, { from: bob });
 
         assert.equal(250, await token.totalSupply({ from: bob }));
     });
 
-    it("buying zTokens", async () => {
+    it("buying zTokens and withdrawing of funds", async () => {
         await contract.deployZToken("Bitmain Antminer S15+28", "S15+28", 0, 50, { from: bob });
         await contract.deployZToken("Bitmain Antminer S17+64", "S17+64", 0, 50, { from: bob });
 
@@ -73,11 +76,16 @@ contract("ZionodesTokenFactory", (accounts) => {
         let s17_token = await ZionodesToken.at(s17_address);
 
         await utils.shouldThrow(contract.buyZTokenUsingWei(s15_address, 20, { from: alice }));
-        await contract.setupWeiPriceForZToken(s15_address, BigInt(1.8 * (10 ** 18)), { from: bob });
-        await contract.setupWeiPriceForZToken(s17_address, BigInt(1.8 * (10 ** 18)), { from: bob });
-        await utils.shouldThrow(contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: 1.8 * (10 ** 18) }));
-        await contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: 20 * 1.8 * (10 ** 18) });
-        await contract.buyZTokenUsingWei(s17_address, 30, { from: alice, value: 30 * 1.8 * (10 ** 18) });
+        await contract.setupWeiPriceForZToken(s15_address, BigInt(web3.utils.toWei("1.8", "ether")), { from: bob });
+        await contract.setupWeiPriceForZToken(s17_address, BigInt(web3.utils.toWei("1.8", "ether")), { from: bob });
+        await utils.shouldThrow(contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: web3.utils.toWei("1.8", "ether") }));
+        await contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: web3.utils.toWei("36", "ether") });
+
+        assert.equal(web3.utils.toWei("36", "ether"), await web3.eth.getBalance(contract.address));
+
+        await contract.buyZTokenUsingWei(s17_address, 30, { from: alice, value: web3.utils.toWei("54", "ether") });
+
+        assert.equal(web3.utils.toWei("90", "ether"), await web3.eth.getBalance(contract.address));
 
         assert.equal(30, await s15_token.balanceOf(contract.address, { from: bob }));
         assert.equal(20, await s15_token.balanceOf(alice, { from: alice }));
@@ -99,6 +107,14 @@ contract("ZionodesTokenFactory", (accounts) => {
         assert.equal(0, await s17_token.allowance(alice, contract.address));
         assert.equal(10, await s17_token.balanceOf(alice, { from: alice }));
         assert.equal(30, await s15_token.balanceOf(alice, { from: alice }));
+
+        assert.equal(web3.utils.toWei("90", "ether"), await web3.eth.getBalance(contract.address));
+
+        await utils.shouldThrow(contract.withdrawWei({ from: alice }));
+        await contract.withdrawWei({ from: bob });
+
+        await utils.shouldThrow(contract.withdrawERC20Token(s17_address, { from: alice }));
+        await contract.withdrawERC20Token(s17_address, { from: bob });
     });
 
 });

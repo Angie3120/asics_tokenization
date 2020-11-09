@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./ZionodesToken.sol";
 import "./Roles.sol";
 
-contract ZionodesTokenFactory is Roles {
+contract ZionodesTokenFactory is Roles, Pausable {
     using SafeMath for uint256;
 
     struct ZToken {
@@ -86,14 +86,14 @@ contract ZionodesTokenFactory is Roles {
         }
     }
 
-    function mintZTokens(address zAddress, uint256 amount)
+    function mintZTokens(address zAddress, address account, uint256 amount)
         external
         onlySuperAdminOrAdmin
         zTokenExists(zAddress)
         zTokenNotPaused(zAddress)
     {
         ZionodesToken token = _zTokens[zAddress].token;
-        token.mint(amount * (10 ** token.decimals()));
+        token.mint(account, amount.mul(10 ** token.decimals()));
     }
 
     function setupWeiPriceForZToken(address zAddress, uint256 weiPrice)
@@ -170,7 +170,7 @@ contract ZionodesTokenFactory is Roles {
         );
 
         IERC20 token = IERC20(addr);
-        uint256 totalERC20Price = _zTokens[zAddress].prices[addr] * amount;
+        uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
 
         require(
             token.allowance(_msgSender(), address(this)) >= totalERC20Price,
@@ -186,6 +186,30 @@ contract ZionodesTokenFactory is Roles {
         );
 
         emit ZTokenSold(zAddress, _msgSender(), amount);
+
+        return true;
+    }
+
+    function withdrawWei()
+        external
+        onlySuperAdminOrAdmin
+        returns (bool)
+    {
+        address payable admin = address(uint160(_msgSender()));
+
+        admin.transfer(address(this).balance);
+
+        return true;
+    }
+
+    function withdrawERC20Token(address addr)
+        external
+        onlySuperAdminOrAdmin
+        returns (bool)
+    {
+        IERC20 token = IERC20(addr);
+
+        token.transfer(_msgSender(), token.balanceOf(address(this)));
 
         return true;
     }
@@ -216,5 +240,25 @@ contract ZionodesTokenFactory is Roles {
         returns (uint256)
     {
         return _zTokens[zAddress].weiPrice;
+    }
+
+    function pause()
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        if (!paused()) {
+            _pause();
+        }
+    }
+
+    function unpause()
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        if (paused()) {
+            _unpause();
+        }
     }
 }

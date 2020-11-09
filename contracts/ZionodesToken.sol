@@ -189,12 +189,12 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         }
     }
 
-    function mint(uint256 amount)
+    function mint(address account, uint256 amount)
         public
         virtual
         onlySuperAdminOrAdmin
     {
-        _mint(_factory, amount);
+        _mint(account, amount);
     }
 
     function _transfer(address sender, address recipient, uint256 amount)

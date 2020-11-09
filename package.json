@@ -6,6 +6,7 @@
         "npm": "6.5.x"
     },
     "devDependencies": {
+        "@truffle/hdwallet-provider": "^1.2.0",
         "concurrently": "^5.3.0",
         "eth-gas-reporter": "^0.2.18",
         "ganache-cli": "^6.12.1",
@@ -23,10 +24,11 @@
         "ganache": {
             "networkId": 3431,
             "gasPrice": 25000000000,
-            "gasLimit": 6500000
+            "gasLimit": 65000000
         }
     },
     "dependencies": {
+        "dotenv": "^8.2.0",
         "truffle-assertions": "^0.9.2"
     }
 }

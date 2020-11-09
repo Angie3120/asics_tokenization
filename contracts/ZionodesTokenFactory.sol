@@ -6,15 +6,16 @@ import "./ZionodesToken.sol";
 import "./Roles.sol";
 
 contract ZionodesTokenFactory is Roles {
+    using SafeMath for uint256;
+
     struct ZToken {
-        mapping(string => Price) prices;
+        mapping(address => uint256) prices;
         ZionodesToken token;
         uint256 weiPrice;
         bool initialized;
     }
 
     struct Price {
-        string symbol;
         uint256 price;
         address addr;
     }
@@ -22,12 +23,18 @@ contract ZionodesTokenFactory is Roles {
     mapping(address => ZToken) private _zTokens;
     mapping(string => address) private _zTokenAdressess;
 
-    event TokenDeployed(
+    event ZTokenDeployed(
         address indexed zAddress,
         string indexed zName,
         string indexed zSymbol,
         uint256 decimals,
         uint256 totalSupply
+    );
+
+    event ZTokenSold(
+        address indexed zAddress,
+        address indexed buyer,
+        uint256 amount
     );
 
     modifier zTokenExists(address zAddress) {
@@ -75,14 +82,18 @@ contract ZionodesTokenFactory is Roles {
             _zTokens[address(tok)] = zToken;
             _zTokenAdressess[zSymbol] = address(tok);
 
-            emit TokenDeployed(
-                address(tok),
-                zName,
-                zSymbol,
-                decimals,
-                totalSupply
-            );
+            emit ZTokenDeployed(address(tok), zName, zSymbol, decimals, totalSupply);
         }
+    }
+
+    function mintZTokens(address zAddress, uint256 amount)
+        external
+        onlySuperAdminOrAdmin
+        zTokenExists(zAddress)
+        zTokenNotPaused(zAddress)
+    {
+        ZionodesToken token = _zTokens[zAddress].token;
+        token.mint(amount * (10 ** token.decimals()));
     }
 
     function setupWeiPriceForZToken(address zAddress, uint256 weiPrice)
@@ -105,8 +116,78 @@ contract ZionodesTokenFactory is Roles {
         zTokenNotPaused(zAddress)
     {
         for (uint256 i = 0; i < prices.length; ++i) {
-            _zTokens[zAddress].prices[prices[i].symbol] = prices[i];
+            _zTokens[zAddress].prices[prices[i].addr] = prices[i].price;
         }
+    }
+
+    function buyZTokenUsingWei(address zAddress, uint256 amount)
+        external
+        payable
+        zTokenExists(zAddress)
+        zTokenNotPaused(zAddress)
+        returns (bool)
+    {
+        require(
+            _zTokens[zAddress].weiPrice > 0,
+            "Price not set"
+        );
+        require(
+            msg.value == _zTokens[zAddress].weiPrice.mul(amount),
+            "Not enough wei to buy tokens"
+        );
+        require(
+            _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
+            "Not enough tokens"
+        );
+        require(
+            _zTokens[zAddress].token.transfer(_msgSender(), amount),
+            "Token transfer failed"
+        );
+
+        emit ZTokenSold(zAddress, _msgSender(), amount);
+
+        return true;
+    }
+
+    function buyZTokenUsingERC20Token
+    (
+        address zAddress,
+        address addr,
+        uint256 amount
+    )
+        external
+        zTokenExists(zAddress)
+        zTokenNotPaused(zAddress)
+        returns (bool)
+    {
+        require(
+            _zTokens[zAddress].prices[addr] > 0,
+            "Price not set"
+        );
+        require(
+            _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
+            "Not enough tokens"
+        );
+
+        IERC20 token = IERC20(addr);
+        uint256 totalERC20Price = _zTokens[zAddress].prices[addr] * amount;
+
+        require(
+            token.allowance(_msgSender(), address(this)) >= totalERC20Price,
+            "Token allowance too low"
+        );
+        require(
+            token.transferFrom(_msgSender(), address(this), totalERC20Price),
+            "Token transfer failed"
+        );
+        require(
+            _zTokens[zAddress].token.transfer(_msgSender(), amount),
+            "Token transfer failed"
+        );
+
+        emit ZTokenSold(zAddress, _msgSender(), amount);
+
+        return true;
     }
 
     function getZTokenAddress(string memory zSymbol)
@@ -120,13 +201,13 @@ contract ZionodesTokenFactory is Roles {
     function getZTokenPriceByERC20Token
     (
         address zAddress,
-        string memory symbol
+        address addr
     )
         external
         view
         returns (uint256)
     {
-        return _zTokens[zAddress].prices[symbol].price;
+        return _zTokens[zAddress].prices[addr];
     }
 
     function getZTokenWeiPrice(address zAddress)

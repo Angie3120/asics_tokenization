@@ -14,7 +14,7 @@ contract ZionodesToken is IERC20, Roles, Pausable {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
-    uint256 private _fee = 10000; // 0.1 * (10 ** 5)
+    uint256 private _fee;
     uint256 private _decimals;
 
     string private _name;
@@ -37,8 +37,10 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         _symbol = symbol;
         _decimals = decimals;
         _factory = factory;
+        // _fee = 0.1 * (uint256(10) ** _decimals); // 0.1 * 10^_decimals
+        _fee = 0;
 
-        _mint(address(this), totalSupply);
+        _mint(_factory, totalSupply * (uint256(10) ** _decimals));
     }
 
     function setFee(uint256 fee)
@@ -47,6 +49,11 @@ contract ZionodesToken is IERC20, Roles, Pausable {
     {
         _fee = fee;
     }
+
+    // function getFee(uint256 amount) external view returns (uint256) {
+    //     return amount.mul(_fee.div(100));
+    // }
+
 
     function name()
         public
@@ -182,6 +189,14 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         }
     }
 
+    function mint(uint256 amount)
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        _mint(_factory, amount);
+    }
+
     function _transfer(address sender, address recipient, uint256 amount)
         internal
         virtual
@@ -200,11 +215,11 @@ contract ZionodesToken is IERC20, Roles, Pausable {
             "ERC20: transfer amount exceeds balance"
         );
 
-        // amount * (_fee% / 100)
-        uint256 fee = amount.mul(_fee.div(10 ** _decimals).div(100));
+        // uint256 fee = amount.mul(_fee.div(10 ** _decimals).div(100));
 
-        _balances[recipient] = _balances[recipient].add(amount - fee);
-        _balances[address(this)] = _balances[address(this)].add(fee);
+        _balances[recipient] = _balances[recipient].add(amount);
+        // _balances[recipient] = _balances[recipient].add(amount - fee);
+        // _balances[address(this)] = _balances[address(this)].add(fee);
 
         emit Transfer(sender, recipient, amount);
     }

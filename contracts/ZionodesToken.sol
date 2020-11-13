@@ -54,7 +54,6 @@ contract ZionodesToken is IERC20, Roles, Pausable {
     //     return amount.mul(_fee.div(100));
     // }
 
-
     function name()
         public
         view

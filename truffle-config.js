@@ -1,5 +1,6 @@
-const env = require('dotenv').config();
-const HDWalletProvider = require('@truffle/hdwallet-provider');
+require("dotenv").config();
+
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 const projectId = process.env.INFURA_PROJECT_ID;
 const mnemonic = process.env.MNEMONIC;
 
@@ -17,7 +18,7 @@ module.exports = {
       port: 8545,
       network_id: networkId,
       gas: gasLimit,
-      gasPrice: gasPrice
+      gasPrice: gasPrice,
     },
     kovan: {
       network_id: "42",
@@ -26,10 +27,10 @@ module.exports = {
           deployKey,
           "https://kovan.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
         ),
-        gasPrice: 10000000000, // 10 gwei
-        gas: 6900000,
-        from: account,
-        timeoutBlocks: 500,
+      gasPrice: 10000000000, // 10 gwei
+      gas: 6900000,
+      from: account,
+      timeoutBlocks: 500,
     },
     main: {
       network_id: "1",
@@ -42,20 +43,26 @@ module.exports = {
       gas: 6900000,
       from: account,
       timeoutBlocks: 500,
-    }
+    },
   },
 
   mocha: {
-    reporter: 'eth-gas-reporter',
-    reporterOptions : {
-      currency: 'USD',
-      gasPrice: 2
-    }
+    reporter: "eth-gas-reporter",
+    reporterOptions: {
+      currency: "USD",
+      gasPrice: 2,
+    },
   },
 
   compilers: {
     solc: {
-        version: "^0.6.0"
+      version: "^0.6.0",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1500,
+        },
+      },
     },
   },
 
@@ -64,5 +71,4 @@ module.exports = {
   api_keys: {
     etherscan: etherscanApiKey,
   },
-
 };

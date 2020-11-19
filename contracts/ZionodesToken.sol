@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.5.0 <0.8.0;
+pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";

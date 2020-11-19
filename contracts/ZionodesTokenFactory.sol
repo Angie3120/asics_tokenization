@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.5.0 <0.8.0;
+pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 import "./ZionodesToken.sol";
@@ -132,16 +132,28 @@ contract ZionodesTokenFactory is Roles, Pausable {
             _zTokens[zAddress].weiPrice > 0,
             "Price not set"
         );
+
+        uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
+
         require(
             msg.value == _zTokens[zAddress].weiPrice.mul(amount),
             "Not enough wei to buy tokens"
         );
+
+        if (tokenDecimals == 0) {
+            require(
+                _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
+                "Not enough tokens"
+            );
+        } else {
+            require(
+                _zTokens[zAddress].token.balanceOf(address(this)).div(tokenDecimals) >= amount,
+                "Not enough tokens"
+            );
+        }
+
         require(
-            _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
-            "Not enough tokens"
-        );
-        require(
-            _zTokens[zAddress].token.transfer(_msgSender(), amount),
+            _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
             "Token transfer failed"
         );
 
@@ -165,10 +177,20 @@ contract ZionodesTokenFactory is Roles, Pausable {
             _zTokens[zAddress].prices[addr] > 0,
             "Price not set"
         );
-        require(
-            _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
-            "Not enough tokens"
-        );
+
+        uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
+
+        if (tokenDecimals == 0) {
+            require(
+                _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
+                "Not enough tokens"
+            );
+        } else {
+            require(
+                _zTokens[zAddress].token.balanceOf(address(this)).div(tokenDecimals) >= amount,
+                "Not enough tokens"
+            );
+        }
 
         IERC20 token = IERC20(addr);
         uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
@@ -182,7 +204,7 @@ contract ZionodesTokenFactory is Roles, Pausable {
             "Token transfer failed"
         );
         require(
-            _zTokens[zAddress].token.transfer(_msgSender(), amount),
+            _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
             "Token transfer failed"
         );
 

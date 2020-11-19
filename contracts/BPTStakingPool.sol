@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.5.0 <0.8.0;
+pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -61,7 +61,6 @@ contract BPTStakingPool is Context, Roles {
         IERC20 bpt = IERC20(_bpt);
 
         bpt.transfer(_msgSender(), amount);
-
         _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
         _totalStake = _totalStake.sub(amount);
 

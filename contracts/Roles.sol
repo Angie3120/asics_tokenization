@@ -30,35 +30,35 @@ abstract contract Roles is Ownable, AccessControl {
     }
 
     function addSuperAdmin(address account)
-        external
+        public
         onlySuperAdmin
     {
         _assignRole(account, DEFAULT_ADMIN_ROLE);
     }
 
     function renounceSuperAdmin()
-        external
+        public
         onlySuperAdmin
     {
         renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
     function addAdmin(address account)
-        external
+        public
         onlySuperAdmin
     {
         _assignRole(account, ADMIN_ROLE);
     }
 
     function removeAdmin(address account)
-        external
+        public
         onlySuperAdmin
     {
         _removeRole(account, ADMIN_ROLE);
     }
 
     function renounceAdmin()
-        external
+        public
         onlyAdmin
     {
         renounceRole(ADMIN_ROLE, _msgSender());

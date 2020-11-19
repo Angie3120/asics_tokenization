@@ -71,7 +71,8 @@ contract ZionodesTokenFactory is Roles, Pausable {
                 zSymbol,
                 decimals,
                 totalSupply,
-                address(this)
+                address(this),
+                owner()
             );
 
             ZToken memory zToken = ZToken({

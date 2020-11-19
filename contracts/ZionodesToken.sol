@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.5.0 <0.8.0;
 
+import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/utils/Pausable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -10,17 +11,22 @@ import "./Roles.sol";
 contract ZionodesToken is IERC20, Roles, Pausable {
     using SafeMath for uint256;
 
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
     uint256 private _fee;
     uint256 private _decimals;
+    uint256 private _feeDecimals;
 
     string private _name;
     string private _symbol;
 
     address private _factory;
+
+    EnumerableSet.AddressSet private _transferWhitelist;
 
     constructor
     (
@@ -28,19 +34,22 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         string memory symbol,
         uint256 decimals,
         uint256 totalSupply,
-        address factory
+        address factory,
+        address factoryAdmin
     )
-        Roles(_msgSender())
+        Roles(factoryAdmin)
         public
     {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
         _factory = factory;
-        // _fee = 0.1 * (uint256(10) ** _decimals); // 0.1 * 10^_decimals
-        _fee = 0;
+        _feeDecimals = 18;
+        _fee = 1000;
 
-        _mint(_factory, totalSupply * (uint256(10) ** _decimals));
+        _mint(_factory, totalSupply);
+        addToTransferWhitelist(factory);
+        addToTransferWhitelist(address(this));
     }
 
     function setFee(uint256 fee)
@@ -50,9 +59,21 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         _fee = fee;
     }
 
-    // function getFee(uint256 amount) external view returns (uint256) {
-    //     return amount.mul(_fee.div(100));
-    // }
+    function getFee()
+        external
+        view
+        returns (uint256)
+    {
+        return _fee;
+    }
+
+    function getFeeForAmount(uint256 amount)
+        external
+        view
+        returns (uint256)
+    {
+        return amount.mul(10 ** _feeDecimals).div(_fee);
+    }
 
     function name()
         public
@@ -94,6 +115,22 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         returns (uint256)
     {
         return _balances[account];
+    }
+
+    function addToTransferWhitelist(address account)
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        _transferWhitelist.add(account);
+    }
+
+    function removeFromTransferWhitelist(address account)
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        _transferWhitelist.remove(account);
     }
 
     function transfer(address recipient, uint256 amount)
@@ -214,11 +251,17 @@ contract ZionodesToken is IERC20, Roles, Pausable {
             "ERC20: transfer amount exceeds balance"
         );
 
-        // uint256 fee = amount.mul(_fee.div(10 ** _decimals).div(100));
-
+        // if (_transferWhitelist.contains(_msgSender())) {
         _balances[recipient] = _balances[recipient].add(amount);
-        // _balances[recipient] = _balances[recipient].add(amount - fee);
-        // _balances[address(this)] = _balances[address(this)].add(fee);
+        // }
+        // else {
+        //     uint256 fee = amount.mul(10 ** _feeDecimals).div(_fee);
+
+        //     _balances[recipient] = _balances[recipient].add(
+        //         amount.mul(10 ** _feeDecimals).sub(fee)
+        //     );
+        //     _balances[address(this)] = _balances[address(this)].add(fee);
+        // }
 
         emit Transfer(sender, recipient, amount);
     }

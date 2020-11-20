@@ -27,8 +27,6 @@ contract BPTStakingPool is Context, Pause {
     {
         _bpt = bpt;
         _factory = _msgSender();
-
-        addAdmin(tx.origin);
     }
 
     function stake(uint256 amount)
@@ -38,12 +36,15 @@ contract BPTStakingPool is Context, Pause {
 
         IERC20 bpt = IERC20(_bpt);
 
-        require(bpt.allowance(
-            _msgSender(), address(this)) >= amount,
+        require(
+            bpt.allowance(_msgSender(), address(this)) >= amount,
             "Not enough allowance for staking"
         );
+        require(
+            bpt.transferFrom(_msgSender(), address(this), amount),
+            "Token transfer failed"
+        );
 
-        bpt.transferFrom(_msgSender(), address(this), amount);
         _stakes[_msgSender()] = _stakes[_msgSender()].add(amount);
         _totalStake = _totalStake.add(amount);
 
@@ -60,7 +61,8 @@ contract BPTStakingPool is Context, Pause {
 
         IERC20 bpt = IERC20(_bpt);
 
-        bpt.transfer(_msgSender(), amount);
+        require(bpt.transfer(_msgSender(), amount), "Token transfer failed");
+
         _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
         _totalStake = _totalStake.sub(amount);
 
@@ -90,6 +92,14 @@ contract BPTStakingPool is Context, Pause {
         returns (uint256)
     {
         return _getStake(account);
+    }
+
+    function getBalancerPoolAddress()
+        external
+        view
+        returns (address)
+    {
+        return _bpt;
     }
 
     function _getStake(address account)

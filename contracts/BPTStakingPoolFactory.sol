@@ -33,7 +33,6 @@ contract BPTStakingPoolFactory is Context, Pause {
     function getBPTStakingPools()
         external
         view
-        onlySuperAdminOrAdmin
         returns (BPTStakingPool[] memory)
     {
         return _bptStakingPoolAddresses;

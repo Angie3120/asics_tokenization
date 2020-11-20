@@ -51,7 +51,7 @@ contract ZionodesTokenFactory is Pause {
     constructor ()
         Roles(_msgSender())
         public
-    {}
+    { }
 
     function deployZToken
     (
@@ -246,6 +246,14 @@ contract ZionodesTokenFactory is Pause {
         return _zTokenAdressess[zSymbol];
     }
 
+    function getZTokenWeiPrice(address zAddress)
+        external
+        view
+        returns (uint256)
+    {
+        return _zTokens[zAddress].weiPrice;
+    }
+
     function getZTokenPriceByERC20Token
     (
         address zAddress,
@@ -256,13 +264,5 @@ contract ZionodesTokenFactory is Pause {
         returns (uint256)
     {
         return _zTokens[zAddress].prices[addr];
-    }
-
-    function getZTokenWeiPrice(address zAddress)
-        external
-        view
-        returns (uint256)
-    {
-        return _zTokens[zAddress].weiPrice;
     }
 }

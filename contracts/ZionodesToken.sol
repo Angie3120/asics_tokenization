@@ -3,12 +3,11 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/utils/Pausable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./Roles.sol";
+import "./utils/Pause.sol";
 
-contract ZionodesToken is IERC20, Roles, Pausable {
+contract ZionodesToken is IERC20, Pause {
     using SafeMath for uint256;
 
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -203,26 +202,6 @@ contract ZionodesToken is IERC20, Roles, Pausable {
         ));
 
         return true;
-    }
-
-    function pause()
-        public
-        virtual
-        onlySuperAdminOrAdmin
-    {
-        if (!paused()) {
-            _pause();
-        }
-    }
-
-    function unpause()
-        public
-        virtual
-        onlySuperAdminOrAdmin
-    {
-        if (paused()) {
-            _unpause();
-        }
     }
 
     function mint(address account, uint256 amount)

@@ -32,6 +32,30 @@ module.exports = {
       from: account,
       timeoutBlocks: 500,
     },
+    ropsten: {
+      network_id: "3",
+      provider: () =>
+        new HDWalletProvider(
+          deployKey,
+          "https://ropsten.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
+        ),
+      gasPrice: 10000000000, // 10 gwei
+      gas: 6900000,
+      from: account,
+      timeoutBlocks: 500,
+    },
+    rinkeby: {
+      network_id: "4",
+      provider: () =>
+        new HDWalletProvider(
+          deployKey,
+          "https://rinkeby.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
+        ),
+      gasPrice: 10000000000, // 10 gwei
+      gas: 6900000,
+      from: account,
+      timeoutBlocks: 500,
+    },
     main: {
       network_id: "1",
       provider: () =>
@@ -60,7 +84,7 @@ module.exports = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 1500,
+          runs: 0,
         },
       },
     },

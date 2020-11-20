@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.6.0;
+
+import "openzeppelin-solidity/contracts/utils/Pausable.sol";
+
+import "../Roles.sol";
+
+abstract contract Pause is Pausable, Roles {
+    function pause()
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        if (!paused()) {
+            _pause();
+        }
+    }
+
+    function unpause()
+        public
+        virtual
+        onlySuperAdminOrAdmin
+    {
+        if (paused()) {
+            _unpause();
+        }
+    }
+}

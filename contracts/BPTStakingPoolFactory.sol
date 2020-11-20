@@ -4,9 +4,10 @@ pragma solidity ^0.6.0;
 import "openzeppelin-solidity/contracts/GSN/Context.sol";
 
 import "./BPTStakingPool.sol";
-import "./Roles.sol";
 
-contract BPTStakingPoolFactory is Context, Roles {
+import "./utils/Pause.sol";
+
+contract BPTStakingPoolFactory is Context, Pause {
     BPTStakingPool[] private _bptStakingPoolAddresses;
 
     event BPTStakingPoolCreated(BPTStakingPool bptStakingPoll);

@@ -5,9 +5,9 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/GSN/Context.sol";
 
-import "./Roles.sol";
+import "./utils/Pause.sol";
 
-contract BPTStakingPool is Context, Roles {
+contract BPTStakingPool is Context, Pause {
     using SafeMath for uint256;
 
     address private _bpt;

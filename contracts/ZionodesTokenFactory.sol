@@ -3,9 +3,10 @@ pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 import "./ZionodesToken.sol";
-import "./Roles.sol";
 
-contract ZionodesTokenFactory is Roles, Pausable {
+import "./utils/Pause.sol";
+
+contract ZionodesTokenFactory is Pause {
     using SafeMath for uint256;
 
     struct ZToken {
@@ -263,25 +264,5 @@ contract ZionodesTokenFactory is Roles, Pausable {
         returns (uint256)
     {
         return _zTokens[zAddress].weiPrice;
-    }
-
-    function pause()
-        public
-        virtual
-        onlySuperAdminOrAdmin
-    {
-        if (!paused()) {
-            _pause();
-        }
-    }
-
-    function unpause()
-        public
-        virtual
-        onlySuperAdminOrAdmin
-    {
-        if (paused()) {
-            _unpause();
-        }
     }
 }

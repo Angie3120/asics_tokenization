@@ -47,8 +47,8 @@ contract ZionodesToken is IERC20, Pause {
         _fee = 1000;
 
         _mint(_factory, totalSupply);
-        addToTransferWhitelist(factory);
-        addToTransferWhitelist(address(this));
+        _transferWhitelist.add(factory);
+        _transferWhitelist.add(address(this));
     }
 
     function setFee(uint256 fee)

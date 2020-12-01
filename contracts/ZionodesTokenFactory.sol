@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "./ZionodesToken.sol";
 
+import "./interfaces/IZToken.sol";
+
 import "./utils/Pause.sol";
 
 contract ZionodesTokenFactory is Pause {
@@ -193,7 +195,7 @@ contract ZionodesTokenFactory is Pause {
             );
         }
 
-        IERC20 token = IERC20(addr);
+        IZToken token = IZToken(addr);
         uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
 
         require(
@@ -231,7 +233,7 @@ contract ZionodesTokenFactory is Pause {
         onlySuperAdminOrAdmin
         returns (bool)
     {
-        IERC20 token = IERC20(addr);
+        IZToken token = IZToken(addr);
 
         token.transfer(_msgSender(), token.balanceOf(address(this)));
 

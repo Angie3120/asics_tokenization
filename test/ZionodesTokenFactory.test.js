@@ -24,6 +24,18 @@ contract("ZionodesTokenFactory", (accounts) => {
         });
 
         assert.equal(0, await contract.getZTokenAddress("S15"));
+
+        await contract.addAdmin(alice, { from: bob });
+
+        assert.equal(false, await contract.isSuperAdmin(alice, { from: alice }));
+        assert.equal(true, await contract.isAdmin(alice, { from: alice }));
+
+        token = await contract.deployZToken("Bitmain Antminer S17+28", "S17+28", 0, 50, { from: alice });
+        address = await contract.getZTokenAddress("S17+28", { from: alice });
+
+        truffleAssert.eventEmitted(token, 'ZTokenDeployed', (event) => {
+            return event.zAddress === address;
+        });
     });
 
     it("set price for ZToken and check it", async () => {
@@ -60,6 +72,12 @@ contract("ZionodesTokenFactory", (accounts) => {
 
         zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
         token = await ZionodesToken.at(zAddress);
+
+        assert.equal(true, await token.isSuperAdmin(bob, { from: bob }));
+
+        await token.addSuperAdmin(contract.address, { from: bob });
+
+        assert.equal(true, await token.isSuperAdmin(contract.address, { from: bob }));
 
         await contract.mintZTokens(zAddress, contract.address, 200, { from: bob });
 

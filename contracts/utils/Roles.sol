@@ -14,18 +14,20 @@ abstract contract Roles is Ownable, AccessControl {
     }
 
     modifier onlySuperAdmin() {
-        require(isSuperAdmin(tx.origin), "Restricted to super admins.");
+        require(isSuperAdmin(_msgSender()), "Restricted to super admins.");
         _;
     }
 
     modifier onlyAdmin() {
-        require(isAdmin(tx.origin), "Restricted to admins.");
+        require(isAdmin(_msgSender()), "Restricted to admins.");
         _;
     }
 
     modifier onlySuperAdminOrAdmin() {
-        require(isSuperAdmin(tx.origin) || isAdmin(tx.origin),
-            "Restricted to super admins or admins.");
+        require(
+            isSuperAdmin(_msgSender()) || isAdmin(_msgSender()),
+            "Restricted to super admins or admins."
+        );
         _;
     }
 

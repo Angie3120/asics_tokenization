@@ -69,23 +69,23 @@ contract("BPTStakingPool", (accounts) => {
 
         assert.equal(tokenAddress, await pool.getBalancerPoolAddress({ from: bob }));
 
-        // tx = await pool.unstake(BigInt(2 * (10 ** 18)), { from: alice });
+        tx = await pool.unstake(BigInt(2 * (10 ** 18)), { from: alice });
 
-        // truffleAssert.eventEmitted(tx, 'Unstaked', (event) => {
-        //     return event.amount == BigInt(2 * (10 ** 18)) && event.account == alice;
-        // });
+        truffleAssert.eventEmitted(tx, 'Unstaked', (event) => {
+            return event.amount == BigInt(2 * (10 ** 18)) && event.account == alice;
+        });
 
-        // assert.equal(BigInt(4 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
-        // assert.equal(BigInt(3 * (10 ** 18)), await pool.getStake({ from: alice }));
+        assert.equal(BigInt(4 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
+        assert.equal(BigInt(3 * (10 ** 18)), await pool.getStake({ from: alice }));
 
-        // await token.approve(pool.address, BigInt(2 * (10 ** 18)), { from: alice });
-        // assert.equal(BigInt(2 * (10 ** 18)), await token.allowance(alice, pool.address, { from: alice }));
+        await token.approve(pool.address, BigInt(2 * (10 ** 18)), { from: alice });
+        assert.equal(BigInt(2 * (10 ** 18)), await token.allowance(alice, pool.address, { from: alice }));
 
-        // tx = await pool.stake(BigInt(1 * (10 ** 18)), { from: alice });
+        tx = await pool.stake(BigInt(1 * (10 ** 18)), { from: alice });
 
-        // assert.equal(BigInt(1 * (10 ** 18)), await token.allowance(alice, pool.address, { from: alice }));
+        assert.equal(BigInt(1 * (10 ** 18)), await token.allowance(alice, pool.address, { from: alice }));
 
-        // assert.equal(BigInt(5 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
-        // assert.equal(BigInt(4 * (10 ** 18)), await pool.getStake({ from: alice }));
+        assert.equal(BigInt(5 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
+        assert.equal(BigInt(4 * (10 ** 18)), await pool.getStake({ from: alice }));
     });
 });

@@ -69,26 +69,27 @@ contract BPTStakingPool is Context, Pause {
         return true;
     }
 
-    // function unstake(uint256 amount)
-    //     external
-    //     returns (bool)
-    // {
-    //     require(
-    //         amount <= _stakes[_msgSender()],
-    //         "Amount exceeds the number of staked tokens"
-    //     );
+    function unstake(uint256 amount)
+        external
+        returns (bool)
+    {
+        require(amount > 0, "Can not ustake 0 tokens");
+        require(
+            amount <= _stakes[_msgSender()],
+            "Amount exceeds the number of staked tokens"
+        );
 
-    //     IERC20 bpt = IERC20(_bpt);
+        claimReward(_msgSender());
 
-    //     require(bpt.transfer(_msgSender(), amount), "Token transfer failed");
+        require(IERC20(_bpt).transfer(_msgSender(), amount), "Token transfer failed");
 
-    //     _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
-    //     _totalStaked = _totalStaked.sub(amount);
+        _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
+        _totalStaked = _totalStaked.sub(amount);
 
-    //     emit Unstaked(_msgSender(), amount);
+        emit Unstaked(_msgSender(), amount);
 
-    //     return true;
-    // }
+        return true;
+    }
 
     function setRenBTCAddress(address renBTCAddress)
         external

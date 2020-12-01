@@ -212,6 +212,13 @@ contract ZionodesToken is IERC20, Pause {
         _mint(account, amount);
     }
 
+    function burn(uint256 amount)
+        public
+        virtual
+    {
+        _burn(_msgSender(), amount);
+    }
+
     function _transfer(address sender, address recipient, uint256 amount)
         internal
         virtual

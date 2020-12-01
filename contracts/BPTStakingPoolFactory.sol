@@ -17,14 +17,14 @@ contract BPTStakingPoolFactory is Context, Pause {
         public
     { }
 
-    function createBPTStakingPoll(address bpt)
+    function createBPTStakingPoll(address bpt, address renBTCAddress)
         external
         onlySuperAdminOrAdmin
     {
         require(bpt != address(0), "Can not be zero address");
         require(bpt != address(this), "Can not be current contract address");
 
-        BPTStakingPool bptStakingPoll = new BPTStakingPool(bpt);
+        BPTStakingPool bptStakingPoll = new BPTStakingPool(bpt, renBTCAddress);
         _bptStakingPoolAddresses.push(bptStakingPoll);
 
         emit BPTStakingPoolCreated(bptStakingPoll);

@@ -58,7 +58,6 @@ contract ZionodesToken is ERC20, Pause {
 
     function addToTransferWhitelist(address account)
         public
-        virtual
         onlySuperAdminOrAdmin
     {
         _transferWhitelist.add(account);
@@ -66,7 +65,6 @@ contract ZionodesToken is ERC20, Pause {
 
     function removeFromTransferWhitelist(address account)
         public
-        virtual
         onlySuperAdminOrAdmin
     {
         _transferWhitelist.remove(account);
@@ -74,7 +72,6 @@ contract ZionodesToken is ERC20, Pause {
 
     function mint(address account, uint256 amount)
         public
-        virtual
         onlySuperAdminOrAdmin
     {
         _mint(account, amount);
@@ -82,7 +79,6 @@ contract ZionodesToken is ERC20, Pause {
 
     function burn(uint256 amount)
         public
-        virtual
     {
         _burn(_msgSender(), amount);
     }

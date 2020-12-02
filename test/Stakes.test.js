@@ -88,4 +88,20 @@ contract("BPTStakingPool", (accounts) => {
         assert.equal(BigInt(5 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
         assert.equal(BigInt(4 * (10 ** 18)), await pool.getStake({ from: alice }));
     });
+
+    it("rewards distributing", async () => {
+        let tokenFactory = await ZionodesTokenFactory.new();
+
+        await tokenFactory.deployZToken("S15+28 BPT", "BPT", 18, 0, { from: bob });
+        await tokenFactory.deployZToken("Ren BTC", "renBTC", 8, 0, { from: bob });
+
+        let btp_address = await tokenFactory.getZTokenAddress("S15+28", { from : bob });
+        let bpt = await ZionodesToken.at(btp_address);
+
+        let renBTC_address = await tokenFactory.getZTokenAddress("renBTC", { from : bob });
+        let renBTC = await ZionodesToken.at(renBTC_address);
+
+        await factory.createBPTStakingPoll(btp_address, renBTC_address, { from: bob });
+
+    });
 });

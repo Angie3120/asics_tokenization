@@ -41,17 +41,17 @@ contract BPTStakingPool is Context, Pause {
         external
         returns (bool)
     {
-        require(amount != 0, "Can not stake 0 tokens");
+        require(amount != 0, "Stake: can not stake 0 tokens");
 
         IERC20 bpt = IERC20(_bpt);
 
         require(
             bpt.allowance(_msgSender(), address(this)) >= amount,
-            "Not enough allowance for staking"
+            "Stake: not enough allowance for staking"
         );
         require(
             bpt.transferFrom(_msgSender(), address(this), amount),
-            "Token transfer failed"
+            "Stake: token transfer failed"
         );
 
         if (_stakes[_msgSender()] == 0) {
@@ -73,15 +73,15 @@ contract BPTStakingPool is Context, Pause {
         external
         returns (bool)
     {
-        require(amount > 0, "Can not ustake 0 tokens");
+        require(amount > 0, "Unstake: can not ustake 0 tokens");
         require(
             amount <= _stakes[_msgSender()],
-            "Amount exceeds the number of staked tokens"
+            "Unstake: amount exceeds the number of staked tokens"
         );
 
         claimReward(_msgSender());
 
-        require(IERC20(_bpt).transfer(_msgSender(), amount), "Token transfer failed");
+        require(IERC20(_bpt).transfer(_msgSender(), amount), "Unstake: token transfer failed");
 
         _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
         _totalStaked = _totalStaked.sub(amount);
@@ -102,7 +102,7 @@ contract BPTStakingPool is Context, Pause {
         external
         returns (bool)
     {
-        require(_totalStaked != 0, "Not a single token has been staked yet");
+        require(_totalStaked != 0, "Distribute: not a single token has been staked yet");
 
         uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
 
@@ -125,6 +125,11 @@ contract BPTStakingPool is Context, Pause {
         );
 
         _accountCummRewardPerStake[_msgSender()] = _cummRewardPerStake;
+
+        require(
+            IERC20(_renBTCAddress).transfer(_msgSender(), claimableAmount),
+            "Claim: token transfer failed"
+        );
 
         emit Claimed(_msgSender(), claimableAmount);
 

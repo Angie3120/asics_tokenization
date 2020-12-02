@@ -20,7 +20,7 @@
         "migrate": "rm -rf build && truffle migrate --reset --compile-all --network development",
         "test": "concurrently \"npm run ganache\" \"npm run migrate && truffle test\" --kill-others --success first",
         "deploy": "truffle deploy",
-        "verify": "truffle run verify ZionodesTokenFactory BPTStakingPoolFactory"
+        "verify": "truffle run verify ZionodesTokenFactory@0x728e5b8308795d7c7587331a0C90FFa410eae8Fb BPTStakingPoolFactory@0x872A9FAc5cc298816db72492A93158717a1B9B29"
     },
     "config": {
         "ganache": {

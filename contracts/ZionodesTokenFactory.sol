@@ -64,7 +64,7 @@ contract ZionodesTokenFactory is Pause {
     (
         string memory zName,
         string memory zSymbol,
-        uint256 decimals,
+        uint8 decimals,
         uint256 totalSupply
     )
         external

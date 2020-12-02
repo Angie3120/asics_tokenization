@@ -37,7 +37,7 @@ contract("ZionodesToken", (accounts) => {
         balance = await token.balanceOf(alice, { from: alice });
         assert.equal(balance, 20);
 
-        let fee = await token.getFee({ from: bob });
+        let fee = await token._fee({ from: bob });
         assert.equal(fee, 1000);
 
         let feeForAmount = await token.getFeeForAmount(10, { from: bob });

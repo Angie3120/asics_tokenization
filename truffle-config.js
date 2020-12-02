@@ -1,22 +1,20 @@
 require("dotenv").config();
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-const projectId = process.env.INFURA_PROJECT_ID;
-const mnemonic = process.env.MNEMONIC;
 
-const networkId = process.env.npm_package_config_ganache_networkId;
 const gasPrice = process.env.npm_package_config_ganache_gasPrice;
 const gasLimit = process.env.npm_package_config_ganache_gasLimit;
 const etherscanApiKey = process.env.npm_package_config_deploy_etherscanApiKey;
 const account = process.env.npm_package_config_deploy_account;
 const deployKey = [process.env.npm_package_config_deploy_key];
+const projectId = process.env.npm_package_config_deploy_projectId;
 
 module.exports = {
   networks: {
     development: {
       host: "127.0.0.1",
       port: 8545,
-      network_id: networkId,
+      network_id: "*",
       gas: gasLimit,
       gasPrice: gasPrice,
     },
@@ -25,7 +23,7 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           deployKey,
-          "https://kovan.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
+          "https://kovan.infura.io/v3/" + projectId
         ),
       gasPrice: 10000000000, // 10 gwei
       gas: 6900000,
@@ -37,7 +35,7 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           deployKey,
-          "https://ropsten.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
+          "https://ropsten.infura.io/v3/" + projectId
         ),
       gasPrice: 10000000000, // 10 gwei
       gas: 6900000,
@@ -49,7 +47,7 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           deployKey,
-          "https://rinkeby.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
+          "https://rinkeby.infura.io/v3/" + projectId
         ),
       gasPrice: 10000000000, // 10 gwei
       gas: 6900000,
@@ -61,7 +59,7 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           deployKey,
-          "https://mainnet.infura.io/v3/71b49581984e47a1b4869aa00aa1ea25"
+          "https://mainnet.infura.io/v3/" + projectId
         ),
       gasPrice: 10000000000, // 10 gwei
       gas: 6900000,

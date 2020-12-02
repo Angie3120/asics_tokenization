@@ -1,13 +1,12 @@
 require("truffle-test-utils").init();
 
 const truffleAssert = require('truffle-assertions');
-const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
 
 const BPTStakingPoolFactory = artifacts.require("BPTStakingPoolFactory");
 const BPTStakingPool = artifacts.require("BPTStakingPool");
 const ZionodesTokenFactory = artifacts.require("ZionodesTokenFactory");
 const ZionodesToken = artifacts.require("ZionodesToken");
+
 const utils = require("./helpers/utils");
 
 contract("BPTStakingPool", (accounts) => {
@@ -95,7 +94,7 @@ contract("BPTStakingPool", (accounts) => {
         await tokenFactory.deployZToken("S15+28 BPT", "BPT", 18, 0, { from: bob });
         await tokenFactory.deployZToken("Ren BTC", "renBTC", 8, 0, { from: bob });
 
-        let btp_address = await tokenFactory.getZTokenAddress("S15+28", { from : bob });
+        let btp_address = await tokenFactory.getZTokenAddress("BPT", { from : bob });
         let bpt = await ZionodesToken.at(btp_address);
 
         let renBTC_address = await tokenFactory.getZTokenAddress("renBTC", { from : bob });

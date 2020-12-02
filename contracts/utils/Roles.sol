@@ -35,7 +35,7 @@ abstract contract Roles is Ownable, AccessControl {
         public
         onlySuperAdmin
     {
-        _assignRole(account, DEFAULT_ADMIN_ROLE);
+        grantRole(DEFAULT_ADMIN_ROLE, account);
     }
 
     function renounceSuperAdmin()
@@ -49,14 +49,14 @@ abstract contract Roles is Ownable, AccessControl {
         public
         onlySuperAdmin
     {
-        _assignRole(account, ADMIN_ROLE);
+        grantRole(ADMIN_ROLE, account);
     }
 
     function removeAdmin(address account)
         public
         onlySuperAdmin
     {
-        _removeRole(account, ADMIN_ROLE);
+        revokeRole(ADMIN_ROLE, account);
     }
 
     function renounceAdmin()
@@ -80,17 +80,5 @@ abstract contract Roles is Ownable, AccessControl {
         returns (bool)
     {
         return hasRole(ADMIN_ROLE, account);
-    }
-
-    function _assignRole(address account, bytes32 role)
-        private
-    {
-        grantRole(role, account);
-    }
-
-    function _removeRole(address account, bytes32 role)
-        private
-    {
-        revokeRole(role, account);
     }
 }

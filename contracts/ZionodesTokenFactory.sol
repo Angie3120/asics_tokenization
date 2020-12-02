@@ -23,6 +23,15 @@ contract ZionodesTokenFactory is Pause {
         address addr;
     }
 
+    struct ZTokenInfo {
+        address zAddress;
+        string zName;
+        string zSymbol;
+        uint256 decimals;
+    }
+
+    ZTokenInfo[] private _zTokensInfo;
+
     mapping(address => ZToken) private _zTokens;
     mapping(string => address) private _zTokenAdressess;
 
@@ -85,6 +94,7 @@ contract ZionodesTokenFactory is Pause {
             });
             _zTokens[address(tok)] = zToken;
             _zTokenAdressess[zSymbol] = address(tok);
+            _zTokensInfo.push(ZTokenInfo(address(tok), zName, zSymbol, decimals));
 
             emit ZTokenDeployed(address(tok), zName, zSymbol, decimals, totalSupply);
         }
@@ -266,5 +276,13 @@ contract ZionodesTokenFactory is Pause {
         returns (uint256)
     {
         return _zTokens[zAddress].prices[addr];
+    }
+
+    function getZTokensInfo()
+        external
+        view
+        returns (ZTokenInfo[] memory)
+    {
+        return _zTokensInfo;
     }
 }

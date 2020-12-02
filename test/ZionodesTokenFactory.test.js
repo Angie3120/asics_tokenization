@@ -1,11 +1,10 @@
 require("truffle-test-utils").init();
 
 const truffleAssert = require('truffle-assertions');
-const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
 
 const ZionodesTokenFactory = artifacts.require("ZionodesTokenFactory");
 const ZionodesToken = artifacts.require("ZionodesToken");
+
 const utils = require("./helpers/utils");
 
 contract("ZionodesTokenFactory", (accounts) => {

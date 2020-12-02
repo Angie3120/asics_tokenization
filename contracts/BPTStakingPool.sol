@@ -10,18 +10,18 @@ import "./utils/Pause.sol";
 contract BPTStakingPool is Context, Pause {
     using SafeMath for uint256;
 
-    uint256 constant BIG_NUMBER = 10 ** 18;
-    uint256 constant DECIMAL = 10 ** 8;
+    uint256 public constant BIG_NUMBER = 10 ** 18;
+    uint256 public constant DECIMAL = 10 ** 8;
 
-    address private _bpt;
-    address private _factory;
-    address private _renBTCAddress;
+    address public _bpt;
+    address public _factory;
+    address public _renBTCAddress;
 
-    uint256 private _totalStaked;
-    uint256 private _cummRewardPerStake;
+    uint256 public _totalStaked;
+    uint256 public _cummRewardPerStake;
 
-    mapping(address => uint256) private _stakes;
-    mapping(address => uint256) private _accountCummRewardPerStake;
+    mapping(address => uint256) public _stakes;
+    mapping(address => uint256) public _accountCummRewardPerStake;
 
     event Staked(address indexed account, uint256 amount);
     event Unstaked(address indexed account, uint256 amount);
@@ -45,10 +45,6 @@ contract BPTStakingPool is Context, Pause {
 
         IERC20 bpt = IERC20(_bpt);
 
-        require(
-            bpt.allowance(_msgSender(), address(this)) >= amount,
-            "Stake: not enough allowance for staking"
-        );
         require(
             bpt.transferFrom(_msgSender(), address(this), amount),
             "Stake: token transfer failed"
@@ -81,7 +77,7 @@ contract BPTStakingPool is Context, Pause {
 
         claimReward(_msgSender());
 
-        require(IERC20(_bpt).transfer(_msgSender(), amount), "Unstake: token transfer failed");
+        require(safeTokenTransfer(_bpt, _msgSender(), amount), "Unstake: token transfer failed");
 
         _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
         _totalStaked = _totalStaked.sub(amount);
@@ -127,7 +123,7 @@ contract BPTStakingPool is Context, Pause {
         _accountCummRewardPerStake[_msgSender()] = _cummRewardPerStake;
 
         require(
-            IERC20(_renBTCAddress).transfer(_msgSender(), claimableAmount),
+            safeTokenTransfer(_renBTCAddress, _msgSender(), claimableAmount),
             "Claim: token transfer failed"
         );
 
@@ -136,12 +132,20 @@ contract BPTStakingPool is Context, Pause {
         return claimableAmount;
     }
 
-    function getTotalStaked()
-        external
-        view
-        returns (uint256)
+    function safeTokenTransfer(address tok, address recipient, uint256 amount)
+        internal
+        returns (bool)
     {
-        return _totalStaked;
+        IERC20 token = IERC20(tok);
+        uint256 tokenBalance = token.balanceOf(address(this));
+
+        if (amount > tokenBalance) {
+            token.transfer(recipient, tokenBalance);
+        } else {
+            token.transfer(recipient, amount);
+        }
+
+        return true;
     }
 
     function getStake()
@@ -149,29 +153,13 @@ contract BPTStakingPool is Context, Pause {
         view
         returns (uint256)
     {
-        return _getStake(_msgSender());
+        return _stakes[_msgSender()];
     }
 
     function getStakePerAccount(address account)
         external
         view
         onlySuperAdminOrAdmin
-        returns (uint256)
-    {
-        return _getStake(account);
-    }
-
-    function getBalancerPoolAddress()
-        external
-        view
-        returns (address)
-    {
-        return _bpt;
-    }
-
-    function _getStake(address account)
-        private
-        view
         returns (uint256)
     {
         return _stakes[account];

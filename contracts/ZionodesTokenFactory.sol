@@ -30,10 +30,10 @@ contract ZionodesTokenFactory is Pause {
         uint256 decimals;
     }
 
-    ZTokenInfo[] private _zTokensInfo;
+    ZTokenInfo[] public _zTokensInfo;
 
-    mapping(address => ZToken) private _zTokens;
-    mapping(string => address) private _zTokenAdressess;
+    mapping(address => ZToken) public _zTokens;
+    mapping(string => address) public _zTokenAdressess;
 
     event ZTokenDeployed(
         address indexed zAddress,
@@ -49,12 +49,8 @@ contract ZionodesTokenFactory is Pause {
         uint256 amount
     );
 
-    modifier zTokenExists(address zAddress) {
+    modifier zTokenExistsAndNotPaused(address zAddress) {
         require(_zTokens[zAddress].initialized, "Token is not deployed yet.");
-        _;
-    }
-
-    modifier zTokenNotPaused(address zAddress) {
         require(!_zTokens[zAddress].token.paused(), "Token is paused.");
         _;
     }
@@ -75,36 +71,37 @@ contract ZionodesTokenFactory is Pause {
         onlySuperAdminOrAdmin
         returns (address)
     {
-        if (_zTokenAdressess[zSymbol] == address(0)
-            || _zTokens[_zTokenAdressess[zSymbol]].token.paused()) {
+        require(
+            _zTokenAdressess[zSymbol] == address(0) ||
+            _zTokens[_zTokenAdressess[zSymbol]].token.paused(),
+            "Token already exists and not paused yet"
+        );
 
-            ZionodesToken tok = new ZionodesToken(
-                zName,
-                zSymbol,
-                decimals,
-                totalSupply,
-                address(this),
-                owner()
-            );
+        ZionodesToken tok = new ZionodesToken(
+            zName,
+            zSymbol,
+            decimals,
+            totalSupply,
+            address(this),
+            owner()
+        );
+        ZToken memory zToken = ZToken({
+            token: tok,
+            weiPrice: 0,
+            initialized: true
+        });
 
-            ZToken memory zToken = ZToken({
-                token: tok,
-                weiPrice: 0,
-                initialized: true
-            });
-            _zTokens[address(tok)] = zToken;
-            _zTokenAdressess[zSymbol] = address(tok);
-            _zTokensInfo.push(ZTokenInfo(address(tok), zName, zSymbol, decimals));
+        _zTokens[address(tok)] = zToken;
+        _zTokenAdressess[zSymbol] = address(tok);
+        _zTokensInfo.push(ZTokenInfo(address(tok), zName, zSymbol, decimals));
 
-            emit ZTokenDeployed(address(tok), zName, zSymbol, decimals, totalSupply);
-        }
+        emit ZTokenDeployed(address(tok), zName, zSymbol, decimals, totalSupply);
     }
 
     function mintZTokens(address zAddress, address account, uint256 amount)
         external
         onlySuperAdminOrAdmin
-        zTokenExists(zAddress)
-        zTokenNotPaused(zAddress)
+        zTokenExistsAndNotPaused(zAddress)
     {
         ZionodesToken token = _zTokens[zAddress].token;
         token.mint(account, amount.mul(10 ** token.decimals()));
@@ -113,8 +110,7 @@ contract ZionodesTokenFactory is Pause {
     function setupWeiPriceForZToken(address zAddress, uint256 weiPrice)
         external
         onlySuperAdminOrAdmin
-        zTokenExists(zAddress)
-        zTokenNotPaused(zAddress)
+        zTokenExistsAndNotPaused(zAddress)
     {
         _zTokens[zAddress].weiPrice = weiPrice;
     }
@@ -126,8 +122,7 @@ contract ZionodesTokenFactory is Pause {
     )
         external
         onlySuperAdminOrAdmin
-        zTokenExists(zAddress)
-        zTokenNotPaused(zAddress)
+        zTokenExistsAndNotPaused(zAddress)
     {
         for (uint256 i = 0; i < prices.length; ++i) {
             _zTokens[zAddress].prices[prices[i].addr] = prices[i].price;
@@ -137,8 +132,7 @@ contract ZionodesTokenFactory is Pause {
     function buyZTokenUsingWei(address zAddress, uint256 amount)
         external
         payable
-        zTokenExists(zAddress)
-        zTokenNotPaused(zAddress)
+        zTokenExistsAndNotPaused(zAddress)
         returns (bool)
     {
         require(
@@ -153,17 +147,10 @@ contract ZionodesTokenFactory is Pause {
             "Not enough wei to buy tokens"
         );
 
-        if (tokenDecimals == 0) {
-            require(
-                _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
-                "Not enough tokens"
-            );
-        } else {
-            require(
-                _zTokens[zAddress].token.balanceOf(address(this)).div(tokenDecimals) >= amount,
-                "Not enough tokens"
-            );
-        }
+        require(
+            _zTokens[zAddress].token.balanceOf(address(this)).div(10 ** tokenDecimals) >= amount,
+            "Not enough tokens"
+        );
 
         require(
             _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
@@ -182,8 +169,7 @@ contract ZionodesTokenFactory is Pause {
         uint256 amount
     )
         external
-        zTokenExists(zAddress)
-        zTokenNotPaused(zAddress)
+        zTokenExistsAndNotPaused(zAddress)
         returns (bool)
     {
         require(
@@ -193,25 +179,14 @@ contract ZionodesTokenFactory is Pause {
 
         uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
 
-        if (tokenDecimals == 0) {
-            require(
-                _zTokens[zAddress].token.balanceOf(address(this)) >= amount,
-                "Not enough tokens"
-            );
-        } else {
-            require(
-                _zTokens[zAddress].token.balanceOf(address(this)).div(tokenDecimals) >= amount,
-                "Not enough tokens"
-            );
-        }
+        require(
+            _zTokens[zAddress].token.balanceOf(address(this)).div(10 ** tokenDecimals) >= amount,
+            "Not enough tokens"
+        );
 
         IZToken token = IZToken(addr);
         uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
 
-        require(
-            token.allowance(_msgSender(), address(this)) >= totalERC20Price,
-            "Token allowance too low"
-        );
         require(
             token.transferFrom(_msgSender(), address(this), totalERC20Price),
             "Token transfer failed"

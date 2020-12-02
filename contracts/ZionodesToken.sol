@@ -12,20 +12,20 @@ contract ZionodesToken is IERC20, Pause {
 
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    mapping(address => uint256) private _balances;
-    mapping(address => mapping(address => uint256)) private _allowances;
+    mapping(address => uint256) public _balances;
+    mapping(address => mapping(address => uint256)) public _allowances;
 
-    uint256 private _totalSupply;
-    uint256 private _fee;
-    uint256 private _decimals;
-    uint256 private _feeDecimals;
+    uint256 public _totalSupply;
+    uint256 public _fee;
+    uint256 public _decimals;
+    uint256 public _feeDecimals;
 
-    string private _name;
-    string private _symbol;
+    string public _name;
+    string public _symbol;
 
-    address private _factory;
+    address public _factory;
 
-    EnumerableSet.AddressSet private _transferWhitelist;
+    EnumerableSet.AddressSet _transferWhitelist;
 
     constructor
     (

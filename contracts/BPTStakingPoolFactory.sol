@@ -8,7 +8,7 @@ import "./BPTStakingPool.sol";
 import "./utils/Pause.sol";
 
 contract BPTStakingPoolFactory is Context, Pause {
-    BPTStakingPool[] private _bptStakingPoolAddresses;
+    BPTStakingPool[] public _bptStakingPools;
 
     event BPTStakingPoolCreated(BPTStakingPool bptStakingPoll);
 
@@ -25,7 +25,7 @@ contract BPTStakingPoolFactory is Context, Pause {
         require(bpt != address(this), "Can not be current contract address");
 
         BPTStakingPool bptStakingPoll = new BPTStakingPool(bpt, renBTCAddress);
-        _bptStakingPoolAddresses.push(bptStakingPoll);
+        _bptStakingPools.push(bptStakingPoll);
 
         emit BPTStakingPoolCreated(bptStakingPoll);
     }
@@ -35,6 +35,6 @@ contract BPTStakingPoolFactory is Context, Pause {
         view
         returns (BPTStakingPool[] memory)
     {
-        return _bptStakingPoolAddresses;
+        return _bptStakingPools;
     }
 }

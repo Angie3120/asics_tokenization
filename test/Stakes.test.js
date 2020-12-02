@@ -40,7 +40,7 @@ contract("BPTStakingPool", (accounts) => {
         let pools = await factory.getBPTStakingPools({ from: bob });
         let pool = await BPTStakingPool.at(pools[0]);
 
-        assert.equal(0, await pool.getTotalStaked({ from: bob }));
+        assert.equal(0, await pool._totalStaked({ from: bob }));
 
         await utils.shouldThrow(pool.stake(0, { from: bob }));
 
@@ -62,11 +62,11 @@ contract("BPTStakingPool", (accounts) => {
 
         tx = await pool.stake(BigInt(5 * (10 ** 18)), { from: alice });
 
-        assert.equal(BigInt(6 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
+        assert.equal(BigInt(6 * (10 ** 18)), await pool._totalStaked({ from: bob }));
         assert.equal(BigInt(1 * (10 ** 18)), await pool.getStake({ from: bob }));
         assert.equal(BigInt(5 * (10 ** 18)), await pool.getStake({ from: alice }));
 
-        assert.equal(tokenAddress, await pool.getBalancerPoolAddress({ from: bob }));
+        assert.equal(tokenAddress, await pool._bpt({ from: bob }));
 
         tx = await pool.unstake(BigInt(2 * (10 ** 18)), { from: alice });
 
@@ -74,7 +74,7 @@ contract("BPTStakingPool", (accounts) => {
             return event.amount == BigInt(2 * (10 ** 18)) && event.account == alice;
         });
 
-        assert.equal(BigInt(4 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
+        assert.equal(BigInt(4 * (10 ** 18)), await pool._totalStaked({ from: bob }));
         assert.equal(BigInt(3 * (10 ** 18)), await pool.getStake({ from: alice }));
 
         await token.approve(pool.address, BigInt(2 * (10 ** 18)), { from: alice });
@@ -84,7 +84,7 @@ contract("BPTStakingPool", (accounts) => {
 
         assert.equal(BigInt(1 * (10 ** 18)), await token.allowance(alice, pool.address, { from: alice }));
 
-        assert.equal(BigInt(5 * (10 ** 18)), await pool.getTotalStaked({ from: bob }));
+        assert.equal(BigInt(5 * (10 ** 18)), await pool._totalStaked({ from: bob }));
         assert.equal(BigInt(4 * (10 ** 18)), await pool.getStake({ from: alice }));
     });
 

@@ -82,7 +82,6 @@ contract ZionodesTokenFactory is Pause {
             zSymbol,
             decimals,
             totalSupply,
-            address(this),
             owner()
         );
         ZToken memory zToken = ZToken({
@@ -104,7 +103,7 @@ contract ZionodesTokenFactory is Pause {
         zTokenExistsAndNotPaused(zAddress)
     {
         ZionodesToken token = _zTokens[zAddress].token;
-        token.mint(account, amount.mul(10 ** token.decimals()));
+        token.mint(account, amount);
     }
 
     function setupWeiPriceForZToken(address zAddress, uint256 weiPrice)

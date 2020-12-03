@@ -24,7 +24,11 @@ contract BPTStakingPoolFactory is Context, Pause {
         require(bpt != address(0), "Can not be zero address");
         require(bpt != address(this), "Can not be current contract address");
 
-        BPTStakingPool bptStakingPoll = new BPTStakingPool(bpt, renBTCAddress);
+        BPTStakingPool bptStakingPoll = new BPTStakingPool(
+            bpt,
+            renBTCAddress,
+            owner()
+        );
         _bptStakingPools.push(bptStakingPoll);
 
         emit BPTStakingPoolCreated(bptStakingPoll);

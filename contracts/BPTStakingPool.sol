@@ -2,6 +2,7 @@
 pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/GSN/Context.sol";
 
@@ -11,7 +12,6 @@ contract BPTStakingPool is Context, Pause {
     using SafeMath for uint256;
 
     uint256 public constant BIG_NUMBER = 10 ** 18;
-    uint256 public constant DECIMAL = 10 ** 8;
 
     address public _bpt;
     address public _factory;
@@ -25,11 +25,11 @@ contract BPTStakingPool is Context, Pause {
 
     event Staked(address indexed account, uint256 amount);
     event Unstaked(address indexed account, uint256 amount);
-    event Claimed(address indexed account, uint256 amount);
+    event Claimed(address indexed account, address indexed recipient, uint256 amount);
     event Distributed(uint256 amount);
 
-    constructor(address bpt, address renBTCAddress)
-        Roles(_factory)
+    constructor(address bpt, address renBTCAddress, address factoryAdmin)
+        Roles(factoryAdmin)
         public
     {
         _bpt = bpt;
@@ -51,13 +51,12 @@ contract BPTStakingPool is Context, Pause {
         );
 
         if (_stakes[_msgSender()] == 0) {
-            _stakes[_msgSender()] = amount;
             _accountCummRewardPerStake[_msgSender()] = _cummRewardPerStake;
         } else {
             claimReward(_msgSender());
-            _stakes[_msgSender()] = _stakes[_msgSender()].add(amount);
         }
 
+        _stakes[_msgSender()] = _stakes[_msgSender()].add(amount);
         _totalStaked = _totalStaked.add(amount);
 
         emit Staked(_msgSender(), amount);
@@ -96,6 +95,7 @@ contract BPTStakingPool is Context, Pause {
 
     function distributeRewards(uint256 rewards)
         external
+        onlySuperAdminOrAdmin
         returns (bool)
     {
         require(_totalStaked != 0, "Distribute: not a single token has been staked yet");
@@ -109,25 +109,25 @@ contract BPTStakingPool is Context, Pause {
         return true;
     }
 
-    function claimReward(address account)
+    function claimReward(address recipient)
         public
         returns (uint256)
     {
+        require(recipient != address(0), "Claim: recipient can not be zero address");
+
         uint256 amountOwedPerToken = _cummRewardPerStake.sub(
             _accountCummRewardPerStake[_msgSender()]
         );
-        uint256 claimableAmount = _stakes[account].mul(amountOwedPerToken).mul(DECIMAL).div(
-            BIG_NUMBER
+        uint256 claimableAmount = _stakes[_msgSender()].mul(amountOwedPerToken).div(BIG_NUMBER);
+
+        require(
+            safeTokenTransfer(_renBTCAddress, recipient, claimableAmount),
+            "Claim: token transfer failed"
         );
 
         _accountCummRewardPerStake[_msgSender()] = _cummRewardPerStake;
 
-        require(
-            safeTokenTransfer(_renBTCAddress, _msgSender(), claimableAmount),
-            "Claim: token transfer failed"
-        );
-
-        emit Claimed(_msgSender(), claimableAmount);
+        emit Claimed(_msgSender(), recipient, claimableAmount);
 
         return claimableAmount;
     }

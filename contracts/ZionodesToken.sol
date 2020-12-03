@@ -23,7 +23,6 @@ contract ZionodesToken is ERC20, Pause {
         string memory symbol,
         uint8 decimals,
         uint256 totalSupply,
-        address factory,
         address factoryAdmin
     )
         ERC20(name, symbol)
@@ -32,12 +31,12 @@ contract ZionodesToken is ERC20, Pause {
     {
         _setupDecimals(decimals);
 
-        _factory = factory;
+        _factory = _msgSender();
         _feeDecimals = 18;
         _fee = 1000;
 
         _mint(_factory, totalSupply);
-        _transferWhitelist.add(factory);
+        _transferWhitelist.add(_msgSender());
         _transferWhitelist.add(address(this));
     }
 

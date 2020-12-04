@@ -156,7 +156,7 @@ contract ZionodesTokenFactory is Pause {
             "Token transfer failed"
         );
 
-        emit ZTokenSold(zAddress, _msgSender(), amount);
+        emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
 
         return true;
     }
@@ -195,7 +195,7 @@ contract ZionodesTokenFactory is Pause {
             "Token transfer failed"
         );
 
-        emit ZTokenSold(zAddress, _msgSender(), amount);
+        emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
 
         return true;
     }

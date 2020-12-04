@@ -121,6 +121,13 @@ contract("BPTStakingPool", (accounts) => {
 
         console.log((await pool._cummRewardPerStake({ from: bob })).toNumber());
 
+        await bpt.addToTransferWhitelist(bob, { from: bob });
+        await bpt.addToTransferWhitelist(alice, { from: bob });
+        await bpt.addToTransferWhitelist(pool.address, { from: bob });
+        await renBTC.addToTransferWhitelist(bob, { from: bob });
+        await renBTC.addToTransferWhitelist(alice, { from: bob });
+        await renBTC.addToTransferWhitelist(pool.address, { from: bob });
+
         await pool.claimReward(bob, { from: bob });
 
         assert.equal(10 * (10 ** 8), (await renBTC.balanceOf(bob, { from: bob })).toNumber());

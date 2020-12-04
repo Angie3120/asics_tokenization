@@ -14,6 +14,7 @@ contract ZionodesToken is ERC20, Pause {
     uint256 public _feeDecimals;
 
     address public _factory;
+    address public _collector;
 
     EnumerableSet.AddressSet _transferWhitelist;
 
@@ -31,28 +32,23 @@ contract ZionodesToken is ERC20, Pause {
     {
         _setupDecimals(decimals);
 
-        _factory = _msgSender();
-        _feeDecimals = 18;
-        _fee = 1000;
-
-        _mint(_factory, totalSupply);
         _transferWhitelist.add(_msgSender());
         _transferWhitelist.add(address(this));
+        _transferWhitelist.add(address(0));
+
+        _factory = _msgSender();
+        _feeDecimals = 18;
+        _fee = 0.1 * (10 ** 18);
+        _collector = factoryAdmin;
+
+        _mint(_factory, totalSupply);
     }
 
     function setFee(uint256 fee)
-        external
+        public
         onlySuperAdminOrAdmin
     {
         _fee = fee;
-    }
-
-    function getFeeForAmount(uint256 amount)
-        external
-        view
-        returns (uint256)
-    {
-        return amount.mul(10 ** _feeDecimals).div(_fee);
     }
 
     function addToTransferWhitelist(address account)
@@ -69,6 +65,19 @@ contract ZionodesToken is ERC20, Pause {
         _transferWhitelist.remove(account);
     }
 
+    function setCollector(address newCollector)
+        public
+        onlySuperAdminOrAdmin
+    {
+        require(newCollector != address(0), "Can not be zero address");
+        require(
+            newCollector != _collector,
+            "Can not be the same as the current collector address"
+        );
+
+        _collector = newCollector;
+    }
+
     function mint(address account, uint256 amount)
         public
         onlySuperAdminOrAdmin
@@ -82,10 +91,43 @@ contract ZionodesToken is ERC20, Pause {
         _burn(_msgSender(), amount);
     }
 
+    function getFeeForAmount(uint256 amount)
+        public
+        view
+        returns (uint256)
+    {
+        return _fee.mul(amount).div(100).div(10 ** _feeDecimals);
+    }
+
+    function isInTransferWhitelist(address account)
+        external
+        view
+        returns (bool)
+    {
+        return _transferWhitelist.contains(account);
+    }
+
+    function _transfer(address sender, address recipient, uint256 amount)
+        internal
+        override
+    {
+        if (!_transferWhitelist.contains(sender)) {
+            uint256 fee = getFeeForAmount(amount);
+
+            super._transfer(sender, recipient, amount.sub(fee));
+            super._transfer(sender, _collector, fee);
+        }
+        else {
+            super._transfer(sender, recipient, amount);
+        }
+    }
+
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
         override
     {
+        super._beforeTokenTransfer(from, to, amount);
+
         require(!paused(), "ERC20: token transfer while paused");
     }
 }

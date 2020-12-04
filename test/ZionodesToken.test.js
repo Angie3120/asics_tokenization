@@ -23,7 +23,7 @@ contract("ZionodesToken", (accounts) => {
         assert.equal(50, await token.balanceOf(contract.address, { from: bob }));
     });
 
-    it.only("transfer zToken", async () => {
+    it("transfer zToken", async () => {
         await contract.deployZToken("Bitmain Antminer S15+28", "S15+28", 5, 50 * (10 ** 5), { from: bob });
 
         let zAddress = await contract.getZTokenAddress("S15+28", { from: bob });

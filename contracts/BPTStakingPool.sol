@@ -17,6 +17,7 @@ contract BPTStakingPool is Context, Pause {
     address public _factory;
     address public _renBTCAddress;
 
+    uint256 public _prevRenBTCBalance;
     uint256 public _totalStaked;
     uint256 public _cummRewardPerStake;
 
@@ -32,9 +33,14 @@ contract BPTStakingPool is Context, Pause {
         Roles(factoryAdmin)
         public
     {
+        require(bpt != address(0), "BPT: can not be zero address");
+        require(renBTCAddress != address(0), "renBTC: can not be zero address");
+        require(bpt != renBTCAddress, "BPT address can not be the same as renBTC address");
+
         _bpt = bpt;
         _renBTCAddress = renBTCAddress;
         _factory = _msgSender();
+        _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
     }
 
     function stake(uint256 amount)
@@ -90,6 +96,12 @@ contract BPTStakingPool is Context, Pause {
         external
         onlySuperAdminOrAdmin
     {
+        require(renBTCAddress != address(0), "renBTC: can not be zero address");
+        require(
+            renBTCAddress != _renBTCAddress,
+            "renBTC address can not be the same as current renBTC address"
+        );
+
         _renBTCAddress = renBTCAddress;
     }
 
@@ -99,10 +111,15 @@ contract BPTStakingPool is Context, Pause {
         returns (bool)
     {
         require(_totalStaked != 0, "Distribute: not a single token has been staked yet");
+        require(
+            IERC20(_renBTCAddress).balanceOf(address(this)).sub(rewards) >= _prevRenBTCBalance,
+            "The required number of awards has not been deposited"
+        );
 
         uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
 
         _cummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
+        _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
 
         emit Distributed(rewards);
 
@@ -125,6 +142,7 @@ contract BPTStakingPool is Context, Pause {
             "Claim: token transfer failed"
         );
 
+        _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
         _accountCummRewardPerStake[_msgSender()] = _cummRewardPerStake;
 
         emit Claimed(_msgSender(), recipient, claimableAmount);

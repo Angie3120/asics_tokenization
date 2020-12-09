@@ -10,28 +10,28 @@ import "./utils/Pause.sol";
 contract BPTStakingPoolFactory is Context, Pause {
     BPTStakingPool[] public _bptStakingPools;
 
-    event BPTStakingPoolCreated(BPTStakingPool bptStakingPoll);
+    event BPTStakingPoolCreated(BPTStakingPool bptStakingPool);
 
     constructor()
         Roles(_msgSender())
         public
     { }
 
-    function createBPTStakingPoll(address bpt, address renBTCAddress)
+    function createBPTStakingPool(address bpt, address renBTCAddress)
         external
         onlySuperAdminOrAdmin
     {
         require(bpt != address(0), "Can not be zero address");
         require(bpt != address(this), "Can not be current contract address");
 
-        BPTStakingPool bptStakingPoll = new BPTStakingPool(
+        BPTStakingPool bptStakingPool = new BPTStakingPool(
             bpt,
             renBTCAddress,
             owner()
         );
-        _bptStakingPools.push(bptStakingPoll);
+        _bptStakingPools.push(bptStakingPool);
 
-        emit BPTStakingPoolCreated(bptStakingPoll);
+        emit BPTStakingPoolCreated(bptStakingPool);
     }
 
     function getBPTStakingPools()

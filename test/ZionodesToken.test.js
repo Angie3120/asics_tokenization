@@ -59,6 +59,10 @@ contract("ZionodesToken", (accounts) => {
 
         await token.transfer(bob, 10 * (10 ** 5), { from: alice });
 
+        let totalSupplyExceptAdmins = await token.getTotalSupplyExceptAdmins({ from: bob });
+
+        assert.equal(40 * (10 ** 5), BigInt(totalSupplyExceptAdmins));
+
         balance = await token.balanceOf(bob, { from: bob });
         assert.equal(balance, 10 * (10 ** 5));
         balance = await token.balanceOf(alice, { from: alice });
@@ -71,6 +75,9 @@ contract("ZionodesToken", (accounts) => {
 
         await token.transfer(bob, 10 * (10 ** 5), { from: alice });
 
+        totalSupplyExceptAdmins = await token.getTotalSupplyExceptAdmins({ from: bob });
+        assert.equal(30.01 * (10 ** 5), BigInt(totalSupplyExceptAdmins));
+
         balance = await token.balanceOf(bob, { from: bob });
         assert.equal(balance, 1999000);
         balance = await token.balanceOf(alice, { from: alice });
@@ -79,6 +86,9 @@ contract("ZionodesToken", (accounts) => {
         assert.equal(balance, 1000);
 
         await token.transfer(alice, 1.5 * (10 ** 5), { from: bob });
+
+        totalSupplyExceptAdmins = await token.getTotalSupplyExceptAdmins({ from: bob });
+        assert.equal(31.51 * (10 ** 5), BigInt(totalSupplyExceptAdmins));
 
         balance = await token.balanceOf(bob, { from: bob });
         assert.equal(balance, 1849000);
@@ -90,7 +100,6 @@ contract("ZionodesToken", (accounts) => {
         balance = await token.balanceOf(bob, { from: bob });
         assert.equal(balance, 599000);
         balance = await token.balanceOf(alice, { from: alice });
-        console.log(BigInt(balance));
         assert.equal(balance, 1398600);
     });
 

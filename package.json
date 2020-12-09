@@ -11,7 +11,7 @@
         "eth-gas-reporter": "^0.2.18",
         "ganache-cli": "^6.12.1",
         "openzeppelin-solidity": "^3.2.0",
-        "truffle": "^5.1.50",
+        "truffle": "^5.1.56",
         "truffle-test-utils": "^0.1.0"
     },
     "scripts": {
@@ -20,7 +20,7 @@
         "migrate": "rm -rf build && truffle migrate --reset --compile-all --network development",
         "test": "concurrently \"npm run ganache\" \"npm run migrate && truffle test\" --kill-others --success first",
         "deploy": "truffle deploy",
-        "verify": "truffle run verify ZionodesTokenFactory@0x3D3723F7b907dAc7C9B7d7d820a45C8Ff0f2adA3 BPTStakingPoolFactory@0x11A9F3c23Eb6D956c8b70F1a8CaE664802a7d602"
+        "verify": "truffle run verify ZionodesTokenFactory@0xB5445ba6B5af1a351925742916f454B0Eb784788 BPTStakingPoolFactory@0x4c71A9FEe801CAb4c4362eb31d15A5b0Ac59E0b7"
     },
     "config": {
         "ganache": {

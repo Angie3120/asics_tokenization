@@ -3,7 +3,6 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "./utils/Pause.sol";
 
@@ -97,6 +96,20 @@ contract ZionodesToken is ERC20, Pause {
         returns (uint256)
     {
         return _fee.mul(amount).div(100).div(10 ** _feeDecimals);
+    }
+
+    function getTotalSupplyExceptAdmins()
+        external
+        view
+        returns (uint256)
+    {
+        uint256 adminBalances = 0;
+
+        for (uint256 i = 0; i < _admins.length(); ++i) {
+            adminBalances = adminBalances.add(balanceOf(_admins.at(i)));
+        }
+
+        return totalSupply().sub(adminBalances);
     }
 
     function isInTransferWhitelist(address account)

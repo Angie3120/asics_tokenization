@@ -27,11 +27,11 @@ contract("BPTStakingPool", (accounts) => {
         let tokenAddress1 = await tokenFactory.getZTokenAddress("S15+28", { from : bob });
         let tokenAddress2 = await tokenFactory.getZTokenAddress("S15+72", { from : bob });
 
-        let tx = await factory.createBPTStakingPoll(tokenAddress1, tokenAddress2, { from: bob });
+        let tx = await factory.createBPTStakingPool(tokenAddress1, tokenAddress2, { from: bob });
         let pools = await factory.getBPTStakingPools({ from: bob });
 
         truffleAssert.eventEmitted(tx, 'BPTStakingPoolCreated', (event) => {
-            return event.bptStakingPoll == pools[0];
+            return event.bptStakingPool == pools[0];
         });
     });
 
@@ -45,7 +45,7 @@ contract("BPTStakingPool", (accounts) => {
         let tokenAddress2 = await tokenFactory.getZTokenAddress("S15+72", { from : bob });
         let token = await ZionodesToken.at(tokenAddress1);
 
-        await factory.createBPTStakingPoll(tokenAddress1, tokenAddress2, { from: bob });
+        await factory.createBPTStakingPool(tokenAddress1, tokenAddress2, { from: bob });
 
         let pools = await factory.getBPTStakingPools({ from: bob });
         let pool = await BPTStakingPool.at(pools[0]);
@@ -110,7 +110,7 @@ contract("BPTStakingPool", (accounts) => {
         let renBTC_address = await tokenFactory.getZTokenAddress("renBTC", { from : bob });
         let renBTC = await ZionodesToken.at(renBTC_address);
 
-        await factory.createBPTStakingPoll(btp_address, renBTC_address, { from: bob });
+        await factory.createBPTStakingPool(btp_address, renBTC_address, { from: bob });
 
         await bpt.addAdmin(tokenFactory.address, { from: bob });
         await tokenFactory.mintZTokens(btp_address, bob, BigInt(2 * (10 ** 18)), { from: bob });

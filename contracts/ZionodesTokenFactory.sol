@@ -2,6 +2,8 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+
 import "./ZionodesToken.sol";
 
 import "./interfaces/IZToken.sol";

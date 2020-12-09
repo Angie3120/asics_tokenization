@@ -2,15 +2,22 @@
 pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/access/AccessControl.sol";
+import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 
 abstract contract Roles is Ownable, AccessControl {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
+    EnumerableSet.AddressSet _admins;
 
     constructor(address account) public {
         _setupRole(DEFAULT_ADMIN_ROLE, account);
 
         _setRoleAdmin(ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
+
+        _admins.add(account);
     }
 
     modifier onlySuperAdmin() {
@@ -36,6 +43,7 @@ abstract contract Roles is Ownable, AccessControl {
         onlySuperAdmin
     {
         grantRole(DEFAULT_ADMIN_ROLE, account);
+        _admins.add(account);
     }
 
     function renounceSuperAdmin()
@@ -43,6 +51,7 @@ abstract contract Roles is Ownable, AccessControl {
         onlySuperAdmin
     {
         renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _admins.remove(_msgSender());
     }
 
     function addAdmin(address account)
@@ -50,6 +59,7 @@ abstract contract Roles is Ownable, AccessControl {
         onlySuperAdmin
     {
         grantRole(ADMIN_ROLE, account);
+        _admins.add(account);
     }
 
     function removeAdmin(address account)
@@ -57,6 +67,7 @@ abstract contract Roles is Ownable, AccessControl {
         onlySuperAdmin
     {
         revokeRole(ADMIN_ROLE, account);
+        _admins.remove(account);
     }
 
     function renounceAdmin()

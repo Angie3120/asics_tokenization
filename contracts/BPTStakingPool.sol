@@ -105,23 +105,14 @@ contract BPTStakingPool is Context, Pause {
         _renBTCAddress = renBTCAddress;
     }
 
-    function distributeRewards(uint256 rewards)
+    function enforceDistributeRewards()
         external
         onlySuperAdminOrAdmin
         returns (bool)
     {
         require(_totalStaked != 0, "Distribute: not a single token has been staked yet");
-        require(
-            IERC20(_renBTCAddress).balanceOf(address(this)).sub(rewards) >= _prevRenBTCBalance,
-            "The required number of awards has not been deposited"
-        );
 
-        uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
-
-        _cummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
-        _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
-
-        emit Distributed(rewards);
+        distributeRewards();
 
         return true;
     }
@@ -130,6 +121,8 @@ contract BPTStakingPool is Context, Pause {
         public
         returns (uint256)
     {
+        distributeRewards();
+
         require(recipient != address(0), "Claim: recipient can not be zero address");
 
         uint256 amountOwedPerToken = _cummRewardPerStake.sub(
@@ -148,6 +141,24 @@ contract BPTStakingPool is Context, Pause {
         emit Claimed(_msgSender(), recipient, claimableAmount);
 
         return claimableAmount;
+    }
+
+    function distributeRewards()
+        internal
+        returns (bool)
+    {
+        uint256 rewards = IERC20(_renBTCAddress).balanceOf(address(this)).sub(_prevRenBTCBalance);
+
+        if (rewards > 0) {
+            uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
+
+            _cummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
+            _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
+
+            emit Distributed(rewards);
+        }
+
+        return true;
     }
 
     function safeTokenTransfer(address tok, address recipient, uint256 amount)

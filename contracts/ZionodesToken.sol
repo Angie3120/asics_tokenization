@@ -32,7 +32,6 @@ contract ZionodesToken is ERC20, Pause {
         _setupDecimals(decimals);
 
         _transferWhitelist.add(_msgSender());
-        _transferWhitelist.add(address(this));
         _transferWhitelist.add(address(0));
 
         _factory = _msgSender();
@@ -139,8 +138,6 @@ contract ZionodesToken is ERC20, Pause {
         internal
         override
     {
-        super._beforeTokenTransfer(from, to, amount);
-
         require(!paused(), "ERC20: token transfer while paused");
     }
 }

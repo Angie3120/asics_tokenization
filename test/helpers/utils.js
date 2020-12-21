@@ -1,14 +1,10 @@
-async function shouldThrow(promise) {
-    try {
-        await promise;
+const truffleAssert = require('truffle-assertions');
 
-        assert(true);
-    }
-    catch (err) {
-        return;
-    }
-
-    assert(false, "The contract did not throw.");
+async function shouldThrow(promise, expectedErrorMsg) {
+    await truffleAssert.reverts(
+        promise,
+        expectedErrorMsg
+    );
 }
 
 module.exports = {

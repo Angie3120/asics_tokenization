@@ -51,7 +51,10 @@ contract("ZionodesTokenFactory", (accounts) => {
         ], { from: bob });
         await contract.setupWeiPriceForZToken(zAddress, BigInt(1.8 * (10 ** 18)), { from: bob });
 
-        await utils.shouldThrow(contract.setupWeiPriceForZToken("0xdac17f958d2ee523a2206206994597c13d831ec7", 2.2 * (10 ** 18), { from: bob }));
+        await utils.shouldThrow(
+            contract.setupWeiPriceForZToken("0xdac17f958d2ee523a2206206994597c13d831ec7", BigInt(2.2 * (10 ** 18)), { from: bob }),
+            "Token is not deployed yet."
+        );
 
         price = await contract.getZTokenPriceByERC20Token(zAddress, "0xad6d458402f60fd3bd25163575031acdce07538d"); // DAI
         assert.equal(price, 133 * (10 ** 6));
@@ -92,10 +95,16 @@ contract("ZionodesTokenFactory", (accounts) => {
         let s15_token = await ZionodesToken.at(s15_address);
         let s17_token = await ZionodesToken.at(s17_address);
 
-        await utils.shouldThrow(contract.buyZTokenUsingWei(s15_address, 20, { from: alice }));
+        await utils.shouldThrow(
+            contract.buyZTokenUsingWei(s15_address, 20, { from: alice }),
+            "Price not set"
+        );
         await contract.setupWeiPriceForZToken(s15_address, BigInt(web3.utils.toWei("1.8", "ether")), { from: bob });
         await contract.setupWeiPriceForZToken(s17_address, BigInt(web3.utils.toWei("1.8", "ether")), { from: bob });
-        await utils.shouldThrow(contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: web3.utils.toWei("1.8", "ether") }));
+        await utils.shouldThrow(
+            contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: web3.utils.toWei("1.8", "ether") }),
+            "Not enough wei to buy tokens"
+        );
         await contract.buyZTokenUsingWei(s15_address, 20, { from: alice, value: web3.utils.toWei("36", "ether") });
 
         assert.equal(web3.utils.toWei("36", "ether"), await web3.eth.getBalance(contract.address));
@@ -107,14 +116,23 @@ contract("ZionodesTokenFactory", (accounts) => {
         assert.equal(30, await s15_token.balanceOf(contract.address, { from: bob }));
         assert.equal(20, await s15_token.balanceOf(alice, { from: alice }));
 
-        await utils.shouldThrow(contract.buyZTokenUsingERC20Token(s15_address, s17_address, 10, { from: alice }));
+        await utils.shouldThrow(
+            contract.buyZTokenUsingERC20Token(s15_address, s17_address, 10, { from: alice }),
+            "Price not set"
+        );
 
         await contract.setupERC20PricesForZToken(s15_address, [
             {price: 2, addr: s17_address},
         ], { from: bob });
 
-        await utils.shouldThrow(contract.buyZTokenUsingERC20Token(s15_address, s17_address, 31, { from: alice }));
-        await utils.shouldThrow(contract.buyZTokenUsingERC20Token(s15_address, s17_address, 10, { from: alice }));
+        await utils.shouldThrow(
+            contract.buyZTokenUsingERC20Token(s15_address, s17_address, 31, { from: alice }),
+            "ERC20: transfer amount exceeds balance"
+        );
+        await utils.shouldThrow(
+            contract.buyZTokenUsingERC20Token(s15_address, s17_address, 10, { from: alice }),
+            "ERC20: transfer amount exceeds allowance"
+        );
 
         await s17_token.approve(contract.address, 20, { from: alice });
         assert.equal(20, await s17_token.allowance(alice, contract.address));
@@ -127,10 +145,16 @@ contract("ZionodesTokenFactory", (accounts) => {
 
         assert.equal(web3.utils.toWei("90", "ether"), await web3.eth.getBalance(contract.address));
 
-        await utils.shouldThrow(contract.withdrawWei({ from: alice }));
+        await utils.shouldThrow(
+            contract.withdrawWei({ from: alice }),
+            "Restricted to super admins or admins."
+        );
         await contract.withdrawWei({ from: bob });
 
-        await utils.shouldThrow(contract.withdrawERC20Token(s17_address, { from: alice }));
+        await utils.shouldThrow(
+            contract.withdrawERC20Token(s17_address, { from: alice }),
+            "Restricted to super admins or admins."
+        );
         await contract.withdrawERC20Token(s17_address, { from: bob });
     });
 

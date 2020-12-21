@@ -52,7 +52,10 @@ contract("BPTStakingPool", (accounts) => {
 
         assert.equal(0, await pool._totalStaked({ from: bob }));
 
-        await utils.shouldThrow(pool.stake(0, { from: bob }));
+        await utils.shouldThrow(
+            pool.stake(0, { from: bob }),
+            "Stake: can not stake 0 tokens"
+        );
 
         await tokenFactory.setupWeiPriceForZToken(tokenAddress1, BigInt(1 * (10 ** 18)), { from: bob });
         await tokenFactory.buyZTokenUsingWei(tokenAddress1, 5, { from: bob, value: web3.utils.toWei("5", "ether") });
@@ -126,10 +129,10 @@ contract("BPTStakingPool", (accounts) => {
         assert.equal(BigInt(2 * (10 ** 18)), await pool.getStake({ from: bob }));
 
         await renBTC.addAdmin(tokenFactory.address, { from: bob });
-        await utils.shouldThrow(pool.distributeRewards(BigInt(10 * (10 ** 8)), { from: bob }));
+        await pool.enforceDistributeRewards({ from: bob });
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(10 * (10 ** 8)), { from: bob });
-        await pool.distributeRewards(BigInt(10 * (10 ** 8)), { from: bob });
-        await utils.shouldThrow(pool.distributeRewards(BigInt(10 * (10 ** 8)), { from: bob }));
+        await pool.enforceDistributeRewards({ from: bob });
+        await pool.enforceDistributeRewards({ from: bob });
 
         console.log((await pool._cummRewardPerStake({ from: bob })).toNumber());
 
@@ -170,8 +173,8 @@ contract("BPTStakingPool", (accounts) => {
         assert.equal(0, (await renBTC.balanceOf(alice, { from: alice })).toNumber());
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(6 * (10 ** 8)), { from: bob });
-        await pool.distributeRewards(BigInt(6 * (10 ** 8)), { from: bob });
-        await utils.shouldThrow(pool.distributeRewards(BigInt(6 * (10 ** 8)), { from: bob }));
+        await pool.enforceDistributeRewards({ from: bob });
+        await pool.enforceDistributeRewards({ from: bob });
 
         console.log((await pool._cummRewardPerStake({ from: bob })).toNumber());
 
@@ -184,16 +187,14 @@ contract("BPTStakingPool", (accounts) => {
         assert.equal(13.6 * (10 ** 8), (await renBTC.balanceOf(bob, { from: bob })).toNumber());
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(12 * (10 ** 8)), { from: bob });
-        await pool.distributeRewards(BigInt(12 * (10 ** 8)), { from: bob });
-        await utils.shouldThrow(pool.distributeRewards(BigInt(1 * (10 ** 8)), { from: bob }));
+        await pool.enforceDistributeRewards({ from: bob });
 
         await pool.claimReward(alice, { from: alice });
 
         assert.equal(7.2 * (10 ** 8), (await renBTC.balanceOf(alice, { from: alice })).toNumber());
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(5 * (10 ** 8)), { from: bob });
-        await pool.distributeRewards(BigInt(5 * (10 ** 8)), { from: bob });
-        await utils.shouldThrow(pool.distributeRewards(BigInt(10 * (10 ** 8)), { from: bob }));
+        await pool.enforceDistributeRewards({ from: bob });
 
         await pool.claimReward(alice, { from: alice });
 
@@ -206,8 +207,7 @@ contract("BPTStakingPool", (accounts) => {
         await pool.unstake(BigInt(2 * (10 ** 18)), { from: bob });
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(10 * (10 ** 8)), { from: bob });
-        await pool.distributeRewards(BigInt(10 * (10 ** 8)), { from: bob });
-        await utils.shouldThrow(pool.distributeRewards(BigInt(10 * (10 ** 8)), { from: bob }));
+        await pool.enforceDistributeRewards({ from: bob });
 
         await pool.claimReward(bob, { from: bob });
         await pool.claimReward(alice, { from: alice });

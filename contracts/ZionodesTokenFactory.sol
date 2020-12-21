@@ -149,11 +149,6 @@ contract ZionodesTokenFactory is Pause {
         );
 
         require(
-            _zTokens[zAddress].token.balanceOf(address(this)).div(10 ** tokenDecimals) >= amount,
-            "Not enough tokens"
-        );
-
-        require(
             _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
             "Token transfer failed"
         );
@@ -178,14 +173,8 @@ contract ZionodesTokenFactory is Pause {
             "Price not set"
         );
 
-        uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
-
-        require(
-            _zTokens[zAddress].token.balanceOf(address(this)).div(10 ** tokenDecimals) >= amount,
-            "Not enough tokens"
-        );
-
         IZToken token = IZToken(addr);
+        uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
         uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
 
         require(

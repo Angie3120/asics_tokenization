@@ -20,6 +20,7 @@ contract BPTStakingPool is Context, Pause {
     uint256 public _prevRenBTCBalance;
     uint256 public _totalStaked;
     uint256 public _cummRewardPerStake;
+    uint256 public _totalMinedRewards;
 
     mapping(address => uint256) public _stakes;
     mapping(address => uint256) public _accountCummRewardPerStake;
@@ -152,6 +153,7 @@ contract BPTStakingPool is Context, Pause {
         if (rewards > 0) {
             uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
 
+            _totalMinedRewards = _totalMinedRewards.add(rewards);
             _cummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
             _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
 

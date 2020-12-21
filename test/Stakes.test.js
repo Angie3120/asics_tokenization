@@ -101,7 +101,7 @@ contract("BPTStakingPool", (accounts) => {
         assert.equal(BigInt(4 * (10 ** 18)), await pool.getStake({ from: alice }));
     });
 
-    it("rewards distributing", async () => {
+    it.only("rewards distributing", async () => {
         let tokenFactory = await ZionodesTokenFactory.new();
 
         await tokenFactory.deployZToken("S15+28 BPT", "BPT", 18, 0, { from: bob });
@@ -130,9 +130,22 @@ contract("BPTStakingPool", (accounts) => {
 
         await renBTC.addAdmin(tokenFactory.address, { from: bob });
         await pool.enforceDistributeRewards({ from: bob });
+
+        assert.equal(0, await pool._totalMinedRewards({ from: bob }));
+
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(10 * (10 ** 8)), { from: bob });
+
+        let tx = await pool.enforceDistributeRewards({ from: bob });
+
+        truffleAssert.eventEmitted(tx, 'Distributed', (event) => {
+            return event.amount == BigInt(10 * (10 ** 8));
+        });
+
+        assert.equal(BigInt(10 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
+
         await pool.enforceDistributeRewards({ from: bob });
-        await pool.enforceDistributeRewards({ from: bob });
+
+        assert.equal(BigInt(10 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
 
         console.log((await pool._cummRewardPerStake({ from: bob })).toNumber());
 
@@ -143,7 +156,7 @@ contract("BPTStakingPool", (accounts) => {
         await renBTC.addToTransferWhitelist(alice, { from: bob });
         await renBTC.addToTransferWhitelist(pool.address, { from: bob });
 
-        let tx = await pool.claimReward(bob, { from: bob });
+        tx = await pool.claimReward(bob, { from: bob });
 
         truffleAssert.eventEmitted(tx, 'Claimed', (event) => {
             return event.amount == BigInt(10 * (10 ** 8)) && event.recipient == bob;
@@ -174,7 +187,12 @@ contract("BPTStakingPool", (accounts) => {
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(6 * (10 ** 8)), { from: bob });
         await pool.enforceDistributeRewards({ from: bob });
+
+        assert.equal(BigInt(16 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
+
         await pool.enforceDistributeRewards({ from: bob });
+
+        assert.equal(BigInt(16 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
 
         console.log((await pool._cummRewardPerStake({ from: bob })).toNumber());
 
@@ -189,12 +207,16 @@ contract("BPTStakingPool", (accounts) => {
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(12 * (10 ** 8)), { from: bob });
         await pool.enforceDistributeRewards({ from: bob });
 
+        assert.equal(BigInt(28 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
+
         await pool.claimReward(alice, { from: alice });
 
         assert.equal(7.2 * (10 ** 8), (await renBTC.balanceOf(alice, { from: alice })).toNumber());
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(5 * (10 ** 8)), { from: bob });
         await pool.enforceDistributeRewards({ from: bob });
+
+        assert.equal(BigInt(33 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
 
         await pool.claimReward(alice, { from: alice });
 
@@ -208,6 +230,8 @@ contract("BPTStakingPool", (accounts) => {
 
         await tokenFactory.mintZTokens(renBTC_address, pool.address, BigInt(10 * (10 ** 8)), { from: bob });
         await pool.enforceDistributeRewards({ from: bob });
+
+        assert.equal(BigInt(43 * (10 ** 8)), await pool._totalMinedRewards({ from: bob }));
 
         await pool.claimReward(bob, { from: bob });
         await pool.claimReward(alice, { from: alice });

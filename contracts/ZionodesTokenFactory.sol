@@ -58,7 +58,7 @@ contract ZionodesTokenFactory is Pause {
     }
 
     constructor ()
-        Roles(_msgSender())
+        Roles([_msgSender(), address(this), address(0)])
         public
     { }
 

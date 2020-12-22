@@ -31,7 +31,7 @@ contract BPTStakingPool is Context, Pause {
     event Distributed(uint256 amount);
 
     constructor(address bpt, address renBTCAddress, address factoryAdmin)
-        Roles(factoryAdmin)
+        Roles([factoryAdmin, _msgSender(), address(this)])
         public
     {
         require(bpt != address(0), "BPT: can not be zero address");

@@ -26,7 +26,7 @@ contract ZionodesToken is ERC20, Pause {
         address factoryAdmin
     )
         ERC20(name, symbol)
-        Roles(factoryAdmin)
+        Roles([factoryAdmin, _msgSender(), address(this)])
         public
     {
         _setupDecimals(decimals);
@@ -108,7 +108,7 @@ contract ZionodesToken is ERC20, Pause {
             adminBalances = adminBalances.add(balanceOf(_admins.at(i)));
         }
 
-        return totalSupply().sub(adminBalances);
+        return totalSupply().sub(adminBalances).add(balanceOf(_factory));
     }
 
     function isInTransferWhitelist(address account)

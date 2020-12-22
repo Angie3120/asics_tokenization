@@ -77,13 +77,20 @@ contract("ZionodesTokenFactory", (accounts) => {
 
         assert.equal(true, await token.isSuperAdmin(bob, { from: bob }));
 
-        await token.addSuperAdmin(contract.address, { from: bob });
+        await contract.addAdmin(alice, { from: bob });
 
-        assert.equal(true, await token.isSuperAdmin(contract.address, { from: bob }));
+        assert.equal(true, await contract.isAdmin(alice, { from: alice }));
 
         await contract.mintZTokens(zAddress, contract.address, 200, { from: bob });
 
         assert.equal(250, await token.totalSupply({ from: bob }));
+
+        assert.equal(true, await token.isAdmin(contract.address, { from: alice }));
+        assert.equal(true, await token.isSuperAdmin(contract.address, { from: alice }));
+
+        await contract.mintZTokens(zAddress, contract.address, 100, { from: alice });
+
+        assert.equal(350, await token.totalSupply({ from: bob }));
     });
 
     it("buying zTokens and withdrawing of funds", async () => {

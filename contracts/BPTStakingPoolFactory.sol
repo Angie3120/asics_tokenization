@@ -13,7 +13,7 @@ contract BPTStakingPoolFactory is Context, Pause {
     event BPTStakingPoolCreated(BPTStakingPool bptStakingPool);
 
     constructor()
-        Roles(_msgSender())
+        Roles([_msgSender(), address(this), address(0)])
         public
     { }
 

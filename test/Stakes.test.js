@@ -101,7 +101,7 @@ contract("BPTStakingPool", (accounts) => {
         assert.equal(BigInt(4 * (10 ** 18)), await pool.getStake({ from: alice }));
     });
 
-    it.only("rewards distributing", async () => {
+    it("rewards distributing", async () => {
         let tokenFactory = await ZionodesTokenFactory.new();
 
         await tokenFactory.deployZToken("S15+28 BPT", "BPT", 18, 0, { from: bob });

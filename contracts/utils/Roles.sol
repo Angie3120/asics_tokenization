@@ -12,12 +12,16 @@ abstract contract Roles is Ownable, AccessControl {
 
     EnumerableSet.AddressSet _admins;
 
-    constructor(address account) public {
-        _setupRole(DEFAULT_ADMIN_ROLE, account);
-
+    constructor(address[3] memory accounts) public {
         _setRoleAdmin(ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
 
-        _admins.add(account);
+        for (uint256 i = 0; i < accounts.length; ++i) {
+            if (accounts[i] != address(0)) {
+                _setupRole(DEFAULT_ADMIN_ROLE, accounts[i]);
+                _setupRole(ADMIN_ROLE, accounts[i]);
+                _admins.add(accounts[i]);
+            }
+        }
     }
 
     modifier onlySuperAdmin() {
@@ -75,6 +79,7 @@ abstract contract Roles is Ownable, AccessControl {
         onlyAdmin
     {
         renounceRole(ADMIN_ROLE, _msgSender());
+        _admins.remove(_msgSender());
     }
 
     function isSuperAdmin(address account)

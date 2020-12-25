@@ -40,16 +40,16 @@ contract("ZionodesToken", (accounts) => {
         assert.equal(balance, 20 * (10 ** 5));
 
         let fee = await token._fee({ from: bob });
-        assert.equal(fee, 0.1 * (10 ** 18));
+        assert.equal(fee, 0.01 * (10 ** 18));
 
         let feeForAmount = await token.getFeeForAmount(10 * (10 ** 5), { from: bob });
-        assert.equal(feeForAmount, 1000);
+        assert.equal(feeForAmount, 100);
         feeForAmount = await token.getFeeForAmount(20 * (10 ** 5), { from: bob });
-        assert.equal(feeForAmount, 2000);
+        assert.equal(feeForAmount, 200);
         feeForAmount = await token.getFeeForAmount(22 * (10 ** 5), { from: bob });
-        assert.equal(feeForAmount, 2200);
+        assert.equal(feeForAmount, 220);
         feeForAmount = await token.getFeeForAmount(1.5 * (10 ** 5), { from: bob });
-        assert.equal(feeForAmount, 150);
+        assert.equal(feeForAmount, 15);
 
         assert.equal(false, await token.isInTransferWhitelist(alice, { from: alice }));
 
@@ -78,28 +78,29 @@ contract("ZionodesToken", (accounts) => {
         assert.equal(30 * (10 ** 5), BigInt(totalSupplyExceptAdmins));
 
         balance = await token.balanceOf(bob, { from: bob });
-        assert.equal(balance, 1999000);
+        assert.equal(balance, 1999900);
         balance = await token.balanceOf(alice, { from: alice });
         assert.equal(balance, 0);
         balance = await token.balanceOf(token.address, { from: alice });
-        assert.equal(balance, 1000);
+        assert.equal(balance, 100);
 
         await token.transfer(alice, 1.5 * (10 ** 5), { from: bob });
 
         totalSupplyExceptAdmins = await token.getTotalSupplyExceptAdmins({ from: bob });
-        assert.equal(31.49850 * (10 ** 5), BigInt(totalSupplyExceptAdmins));
+        assert.equal(31.49985 * (10 ** 5), BigInt(totalSupplyExceptAdmins));
 
         balance = await token.balanceOf(bob, { from: bob });
-        assert.equal(balance, 1849000);
+        assert.equal(balance, 1849900);
         balance = await token.balanceOf(alice, { from: alice });
-        assert.equal(balance, 149850);
+        assert.equal(balance, 149985);
 
         await token.transfer(alice, 12.5 * (10 ** 5), { from: bob });
 
         balance = await token.balanceOf(bob, { from: bob });
-        assert.equal(balance, 599000);
+        assert.equal(balance, 599900);
         balance = await token.balanceOf(alice, { from: alice });
-        assert.equal(balance, 1398600);
+        console.log(BigInt(balance));
+        assert.equal(balance, 1399860);
     });
 
 });

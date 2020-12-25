@@ -36,7 +36,7 @@ contract ZionodesToken is ERC20, Pause {
 
         _factory = _msgSender();
         _feeDecimals = 18;
-        _fee = 0.1 * (10 ** 18);
+        _fee = 0.01 * (10 ** 18);
         _collector = factoryAdmin;
 
         _mint(_factory, totalSupply);

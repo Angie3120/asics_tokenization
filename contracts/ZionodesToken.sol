@@ -137,14 +137,13 @@ contract ZionodesToken is ERC20, Pause {
         internal
         override
     {
-        if (!_transferWhitelist.contains(sender)) {
+        if (_transferWhitelist.contains(sender) || recipient == _balancerPool) {
+            super._transfer(sender, recipient, amount);
+        } else {
             uint256 fee = getFeeForAmount(amount);
 
             super._transfer(sender, recipient, amount.sub(fee));
             super._transfer(sender, _collector, fee);
-        }
-        else {
-            super._transfer(sender, recipient, amount);
         }
     }
 

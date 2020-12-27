@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
@@ -32,7 +32,6 @@ contract BPTStakingPool is Context, Pause {
 
     constructor(address bpt, address renBTCAddress, address factoryAdmin)
         Roles([factoryAdmin, _msgSender(), address(this)])
-        public
     {
         require(bpt != address(0), "BPT: can not be zero address");
         require(renBTCAddress != address(0), "renBTC: can not be zero address");

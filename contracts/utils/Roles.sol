@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/access/AccessControl.sol";
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
@@ -12,7 +12,7 @@ abstract contract Roles is Ownable, AccessControl {
 
     EnumerableSet.AddressSet _admins;
 
-    constructor(address[3] memory accounts) public {
+    constructor(address[3] memory accounts) {
         _setRoleAdmin(ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
 
         for (uint256 i = 0; i < accounts.length; ++i) {

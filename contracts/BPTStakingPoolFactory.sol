@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/GSN/Context.sol";
 
@@ -14,7 +14,6 @@ contract BPTStakingPoolFactory is Context, Pause {
 
     constructor()
         Roles([_msgSender(), address(this), address(0)])
-        public
     { }
 
     function createBPTStakingPool(address bpt, address renBTCAddress)

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "./utils/Pause.sol";
 
 contract ZionodesToken is ERC20, Pause {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeMath for uint256;
 
     uint256 public _fee;
     uint256 public _feeDecimals;
@@ -28,7 +30,6 @@ contract ZionodesToken is ERC20, Pause {
     )
         ERC20(name, symbol)
         Roles([factoryAdmin, _msgSender(), address(this)])
-        public
     {
         _setupDecimals(decimals);
 

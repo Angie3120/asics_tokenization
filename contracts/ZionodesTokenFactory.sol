@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -14,10 +14,10 @@ contract ZionodesTokenFactory is Pause {
     using SafeMath for uint256;
 
     struct ZToken {
-        mapping(address => uint256) prices;
         ZionodesToken token;
         uint256 weiPrice;
         bool initialized;
+        mapping(address => uint256) prices;
     }
 
     struct Price {
@@ -59,7 +59,6 @@ contract ZionodesTokenFactory is Pause {
 
     constructor ()
         Roles([_msgSender(), address(this), address(0)])
-        public
     { }
 
     function deployZToken
@@ -86,17 +85,18 @@ contract ZionodesTokenFactory is Pause {
             totalSupply,
             owner()
         );
-        ZToken memory zToken = ZToken({
-            token: tok,
-            weiPrice: 0,
-            initialized: true
-        });
 
-        _zTokens[address(tok)] = zToken;
+        ZToken storage zToken = _zTokens[address(tok)];
+        zToken.token = tok;
+        zToken.weiPrice = 0;
+        zToken.initialized = true;
+
         _zTokenAdressess[zSymbol] = address(tok);
         _zTokensInfo.push(ZTokenInfo(address(tok), zName, zSymbol, decimals));
 
         emit ZTokenDeployed(address(tok), zName, zSymbol, decimals, totalSupply);
+
+        return address(tok);
     }
 
     function mintZTokens(address zAddress, address account, uint256 amount)

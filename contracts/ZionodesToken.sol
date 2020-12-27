@@ -14,6 +14,7 @@ contract ZionodesToken is ERC20, Pause {
 
     address public _factory;
     address public _collector;
+    address public _balancerPool;
 
     EnumerableSet.AddressSet _transferWhitelist;
 
@@ -43,28 +44,40 @@ contract ZionodesToken is ERC20, Pause {
     }
 
     function setFee(uint256 fee)
-        public
+        external
         onlySuperAdminOrAdmin
     {
         _fee = fee;
     }
 
+    function setBalancerPoolAddress(address balancerPool)
+        external
+        onlySuperAdminOrAdmin
+    {
+        require(balancerPool != address(0), "Can not be zero address");
+        require(balancerPool != _msgSender(), "Can not be the same like caller");
+        require(balancerPool != _balancerPool, "Can not be the same like old one");
+
+        _balancerPool = balancerPool;
+        _transferWhitelist.add(_balancerPool);
+    }
+
     function addToTransferWhitelist(address account)
-        public
+        external
         onlySuperAdminOrAdmin
     {
         _transferWhitelist.add(account);
     }
 
     function removeFromTransferWhitelist(address account)
-        public
+        external
         onlySuperAdminOrAdmin
     {
         _transferWhitelist.remove(account);
     }
 
     function setCollector(address newCollector)
-        public
+        external
         onlySuperAdminOrAdmin
     {
         require(newCollector != address(0), "Can not be zero address");
@@ -77,14 +90,14 @@ contract ZionodesToken is ERC20, Pause {
     }
 
     function mint(address account, uint256 amount)
-        public
+        external
         onlySuperAdminOrAdmin
     {
         _mint(account, amount);
     }
 
     function burn(uint256 amount)
-        public
+        external
     {
         _burn(_msgSender(), amount);
     }

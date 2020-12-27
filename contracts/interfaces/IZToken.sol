@@ -4,34 +4,21 @@ pragma solidity ^0.6.0;
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 interface IZToken is IERC20 {
-    function pause()
-        external;
+    function pause() external;
 
-    function unpause()
-        external;
+    function unpause() external;
 
-    function addSuperAdmin(address account)
-        external;
+    function addSuperAdmin(address account) external;
 
-    function renounceSuperAdmin()
-        external;
+    function renounceSuperAdmin() external;
 
-    function addAdmin(address account)
-        external;
+    function addAdmin(address account) external;
 
-    function removeAdmin(address account)
-        external;
+    function removeAdmin(address account) external;
 
-    function renounceAdmin()
-        external;
+    function renounceAdmin() external;
 
-    function isSuperAdmin(address account)
-        external
-        view
-        returns (bool);
+    function isSuperAdmin(address account) external view returns (bool);
 
-    function isAdmin(address account)
-        external
-        view
-        returns (bool);
+    function isAdmin(address account) external view returns (bool);
 }

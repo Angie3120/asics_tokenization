@@ -200,15 +200,19 @@ contract BPTStakingPool is Context, Pause {
         external
         returns (uint256)
     {
-        uint256 rewards = IERC20(_renBTCAddress).balanceOf(address(this)).sub(
-            _prevRenBTCBalance
-        );
-        uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
-        uint256 newCummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
-        uint256 amountOwedPerToken = newCummRewardPerStake.sub(
-            _accountCummRewardPerStake[account]
-        );
+        if (_totalStaked > 0) {
+            uint256 rewards = IERC20(_renBTCAddress).balanceOf(address(this)).sub(
+                _prevRenBTCBalance
+            );
+            uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
+            uint256 newCummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
+            uint256 amountOwedPerToken = newCummRewardPerStake.sub(
+                _accountCummRewardPerStake[account]
+            );
 
-        return _stakes[account].mul(amountOwedPerToken).div(BIG_NUMBER);
+            return _stakes[account].mul(amountOwedPerToken).div(BIG_NUMBER);
+        }
+
+        return 0;
     }
 }

@@ -231,7 +231,10 @@ contract("BPTStakingPool", (accounts) => {
     await renBTC.addToTransferWhitelist(alice, { from: bob });
     await renBTC.addToTransferWhitelist(pool.address, { from: bob });
 
-    assert.equal(10 * 10 ** 8, await pool.getClaimableRewards({ from: bob }));
+    assert.equal(
+      10 * 10 ** 8,
+      await pool.getClaimableRewards(bob, { from: bob })
+    );
 
     tx = await pool.claimReward(bob, { from: bob });
 
@@ -243,7 +246,7 @@ contract("BPTStakingPool", (accounts) => {
       10 * 10 ** 8,
       (await renBTC.balanceOf(bob, { from: bob })).toNumber()
     );
-    assert.equal(0, await pool.getClaimableRewards({ from: bob }));
+    assert.equal(0, await pool.getClaimableRewards(bob, { from: bob }));
 
     await pool.claimReward(bob, { from: bob });
 
@@ -307,7 +310,10 @@ contract("BPTStakingPool", (accounts) => {
       BigInt(16 * 10 ** 8),
       await pool._totalMinedRewards({ from: bob })
     );
-    assert.equal(2.4 * 10 ** 8, await pool.getClaimableRewards({ from: alice }));
+    assert.equal(
+      2.4 * 10 ** 8,
+      await pool.getClaimableRewards(alice, { from: alice })
+    );
 
     await pool.claimReward(alice, { from: alice });
 
@@ -315,7 +321,10 @@ contract("BPTStakingPool", (accounts) => {
       2.4 * 10 ** 8,
       (await renBTC.balanceOf(alice, { from: alice })).toNumber()
     );
-    assert.equal(3.6 * 10 ** 8, await pool.getClaimableRewards({ from: bob }));
+    assert.equal(
+      3.6 * 10 ** 8,
+      await pool.getClaimableRewards(bob, { from: bob })
+    );
 
     await pool.claimReward(bob, { from: bob });
 
@@ -336,7 +345,10 @@ contract("BPTStakingPool", (accounts) => {
       BigInt(28 * 10 ** 8),
       await pool._totalMinedRewards({ from: bob })
     );
-    assert.equal(4.8 * 10 ** 8, await pool.getClaimableRewards({ from: alice }));
+    assert.equal(
+      4.8 * 10 ** 8,
+      await pool.getClaimableRewards(alice, { from: alice })
+    );
 
     await pool.claimReward(alice, { from: alice });
 
@@ -357,7 +369,10 @@ contract("BPTStakingPool", (accounts) => {
       BigInt(33 * 10 ** 8),
       await pool._totalMinedRewards({ from: bob })
     );
-    assert.equal(2 * 10 ** 8, await pool.getClaimableRewards({ from: alice }));
+    assert.equal(
+      2 * 10 ** 8,
+      await pool.getClaimableRewards(alice, { from: alice })
+    );
 
     await pool.claimReward(alice, { from: alice });
 
@@ -365,7 +380,10 @@ contract("BPTStakingPool", (accounts) => {
       920000000,
       (await renBTC.balanceOf(alice, { from: alice })).toNumber()
     );
-    assert.equal(1020000000, await pool.getClaimableRewards({ from: bob }));
+    assert.equal(
+      1020000000,
+      await pool.getClaimableRewards(bob, { from: bob })
+    );
 
     await pool.claimReward(bob, { from: bob });
 
@@ -389,11 +407,11 @@ contract("BPTStakingPool", (accounts) => {
       await pool._totalMinedRewards({ from: bob })
     );
 
-    console.log(BigInt(await pool.getClaimableRewards({ from: bob })));
-    console.log(BigInt(await pool.getClaimableRewards({ from: alice })));
-
-    assert.equal(333333333, await pool.getClaimableRewards({ from: bob }));
-    assert.equal(666666666, await pool.getClaimableRewards({ from: alice }));
+    assert.equal(333333333, await pool.getClaimableRewards(bob, { from: bob }));
+    assert.equal(
+      666666666,
+      await pool.getClaimableRewards(alice, { from: alice })
+    );
 
     await pool.claimReward(bob, { from: bob });
     await pool.claimReward(alice, { from: alice });

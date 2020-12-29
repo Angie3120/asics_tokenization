@@ -195,7 +195,7 @@ contract BPTStakingPool is Context, Pause {
         return _stakes[account];
     }
 
-    function getClaimableRewards()
+    function getClaimableRewards(address account)
         view
         external
         returns (uint256)
@@ -206,9 +206,9 @@ contract BPTStakingPool is Context, Pause {
         uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
         uint256 newCummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
         uint256 amountOwedPerToken = newCummRewardPerStake.sub(
-            _accountCummRewardPerStake[_msgSender()]
+            _accountCummRewardPerStake[account]
         );
 
-        return _stakes[_msgSender()].mul(amountOwedPerToken).div(BIG_NUMBER);
+        return _stakes[account].mul(amountOwedPerToken).div(BIG_NUMBER);
     }
 }

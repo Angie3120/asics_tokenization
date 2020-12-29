@@ -194,4 +194,21 @@ contract BPTStakingPool is Context, Pause {
     {
         return _stakes[account];
     }
+
+    function getClaimableRewards()
+        view
+        external
+        returns (uint256)
+    {
+        uint256 rewards = IERC20(_renBTCAddress).balanceOf(address(this)).sub(
+            _prevRenBTCBalance
+        );
+        uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
+        uint256 newCummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
+        uint256 amountOwedPerToken = newCummRewardPerStake.sub(
+            _accountCummRewardPerStake[_msgSender()]
+        );
+
+        return _stakes[_msgSender()].mul(amountOwedPerToken).div(BIG_NUMBER);
+    }
 }

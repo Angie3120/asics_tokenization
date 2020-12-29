@@ -1,6 +1,7 @@
 require("truffle-test-utils").init();
 
 const truffleAssert = require("truffle-assertions");
+const { expectRevert, constants, BN } = require("@openzeppelin/test-helpers");
 
 const ZionodesTokenFactory = artifacts.require("ZionodesTokenFactory");
 const ZionodesToken = artifacts.require("ZionodesToken");
@@ -12,6 +13,36 @@ contract("ZionodesTokenFactory", (accounts) => {
 
   beforeEach(async () => {
     contract = await ZionodesTokenFactory.new();
+  });
+
+  it("ensure that initial variables are correct", async () => {
+    assert.equal(contract.address, await contract.paymentAddress());
+  });
+
+  it("ensure tha setting payment address works correctly", async () => {
+    await expectRevert(
+      contract.setPaymentAddress(constants.ZERO_ADDRESS, { from: alice }),
+      "Restricted to super admins or admins."
+    );
+    await expectRevert(
+      contract.setPaymentAddress(constants.ZERO_ADDRESS, { from: bob }),
+      "Payment address can not be zero address"
+    );
+    await expectRevert(
+      contract.setPaymentAddress(contract.address, { from: bob }),
+      "New payment address can not be the same as old payment address"
+    );
+    await contract.setPaymentAddress(
+      "0xf3e0d7bf58c5d455d31ef1c2d5375904df525105",
+      { from: bob }
+    );
+
+    assert.equal(
+      web3.utils.toChecksumAddress(
+        "0xf3e0d7bf58c5d455d31ef1c2d5375904df525105"
+      ),
+      await contract.paymentAddress({ from: bob })
+    );
   });
 
   it("deploy token", async () => {
@@ -242,15 +273,24 @@ contract("ZionodesTokenFactory", (accounts) => {
     );
 
     await utils.shouldThrow(
-      contract.withdrawWei({ from: alice }),
+      contract.withdrawWei(alice, { from: alice }),
       "Restricted to super admins or admins."
     );
-    await contract.withdrawWei({ from: bob });
-
     await utils.shouldThrow(
-      contract.withdrawERC20Token(s17_address, { from: alice }),
-      "Restricted to super admins or admins."
+      contract.withdrawWei(constants.ZERO_ADDRESS, { from: bob }),
+      "Withdraw address can not be zero address"
     );
-    await contract.withdrawERC20Token(s17_address, { from: bob });
+    await utils.shouldThrow(
+      contract.withdrawWei(contract.address, { from: bob }),
+      "Withdraw address can not be tha same as current contract address"
+    );
+    await contract.withdrawWei(bob, { from: bob });
+
+    await contract.withdrawERC20Token(s17_address, bob, { from: bob });
+
+    assert.equal(
+      "40",
+      new BN(await s17_token.balanceOf(bob, { from: bob })).toString()
+    );
   });
 });

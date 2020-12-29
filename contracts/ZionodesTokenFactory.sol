@@ -32,6 +32,8 @@ contract ZionodesTokenFactory is Pause {
         uint256 decimals;
     }
 
+    address public paymentAddress;
+
     ZTokenInfo[] public _zTokensInfo;
 
     mapping(address => ZToken) public _zTokens;
@@ -57,9 +59,20 @@ contract ZionodesTokenFactory is Pause {
         _;
     }
 
+    modifier onlyCorrectAddressForWithdraw(address destination) {
+        require(destination != address(0), "Withdraw address can not be zero address");
+        require(
+            destination != address(this),
+            "Withdraw address can not be tha same as current contract address"
+        );
+        _;
+    }
+
     constructor ()
         Roles([_msgSender(), address(this), address(0)])
-    { }
+    {
+        paymentAddress = address(this);
+    }
 
     function deployZToken
     (
@@ -130,6 +143,19 @@ contract ZionodesTokenFactory is Pause {
         }
     }
 
+    function setPaymentAddress(address paymentAddr)
+        external
+        onlySuperAdminOrAdmin
+    {
+        require(paymentAddr != address(0), "Payment address can not be zero address");
+        require(
+            paymentAddr != paymentAddress,
+            "New payment address can not be the same as old payment address"
+        );
+
+        paymentAddress = paymentAddr;
+    }
+
     function buyZTokenUsingWei(address zAddress, uint256 amount)
         external
         payable
@@ -152,6 +178,12 @@ contract ZionodesTokenFactory is Pause {
             _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
             "Token transfer failed"
         );
+
+        if (paymentAddress != address(this)) {
+            address payable dst = address(uint160(paymentAddress));
+
+            dst.transfer(msg.value);
+        }
 
         emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
 
@@ -178,7 +210,7 @@ contract ZionodesTokenFactory is Pause {
         uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
 
         require(
-            token.transferFrom(_msgSender(), address(this), totalERC20Price),
+            token.transferFrom(_msgSender(), paymentAddress, totalERC20Price),
             "Token transfer failed"
         );
         require(
@@ -191,26 +223,28 @@ contract ZionodesTokenFactory is Pause {
         return true;
     }
 
-    function withdrawWei()
+    function withdrawWei(address destination)
         external
         onlySuperAdminOrAdmin
+        onlyCorrectAddressForWithdraw(destination)
         returns (bool)
     {
-        address payable admin = address(uint160(_msgSender()));
+        address payable dst = address(uint160(destination));
 
-        admin.transfer(address(this).balance);
+        dst.transfer(address(this).balance);
 
         return true;
     }
 
-    function withdrawERC20Token(address addr)
+    function withdrawERC20Token(address addr, address destination)
         external
         onlySuperAdminOrAdmin
+        onlyCorrectAddressForWithdraw(destination)
         returns (bool)
     {
         IZToken token = IZToken(addr);
 
-        token.transfer(_msgSender(), token.balanceOf(address(this)));
+        token.transfer(destination, token.balanceOf(address(this)));
 
         return true;
     }

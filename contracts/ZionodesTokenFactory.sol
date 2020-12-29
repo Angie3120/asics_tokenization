@@ -39,14 +39,6 @@ contract ZionodesTokenFactory is Pause {
     mapping(address => ZToken) public _zTokens;
     mapping(string => address) public _zTokenAdressess;
 
-    event ZTokenDeployed(
-        address indexed zAddress,
-        string indexed zName,
-        string indexed zSymbol,
-        uint256 decimals,
-        uint256 totalSupply
-    );
-
     event ZTokenSold(
         address indexed zAddress,
         address indexed buyer,
@@ -54,17 +46,14 @@ contract ZionodesTokenFactory is Pause {
     );
 
     modifier zTokenExistsAndNotPaused(address zAddress) {
-        require(_zTokens[zAddress].initialized, "Token is not deployed yet.");
-        require(!_zTokens[zAddress].token.paused(), "Token is paused.");
+        require(_zTokens[zAddress].initialized, "Token isn't deployed");
+        require(!_zTokens[zAddress].token.paused(), "Token is paused");
         _;
     }
 
-    modifier onlyCorrectAddressForWithdraw(address destination) {
-        require(destination != address(0), "Withdraw address can not be zero address");
-        require(
-            destination != address(this),
-            "Withdraw address can not be tha same as current contract address"
-        );
+    modifier onlyCorrectAddress(address destination) {
+        require(destination != address(0), "Zero address");
+        require(destination != address(this), "Identical addresses");
         _;
     }
 
@@ -88,7 +77,7 @@ contract ZionodesTokenFactory is Pause {
         require(
             _zTokenAdressess[zSymbol] == address(0) ||
             _zTokens[_zTokenAdressess[zSymbol]].token.paused(),
-            "Token already exists and not paused yet"
+            "Token exists and not paused"
         );
 
         ZionodesToken tok = new ZionodesToken(
@@ -107,8 +96,6 @@ contract ZionodesTokenFactory is Pause {
         _zTokenAdressess[zSymbol] = address(tok);
         _zTokensInfo.push(ZTokenInfo(address(tok), zName, zSymbol, decimals));
 
-        emit ZTokenDeployed(address(tok), zName, zSymbol, decimals, totalSupply);
-
         return address(tok);
     }
 
@@ -117,8 +104,7 @@ contract ZionodesTokenFactory is Pause {
         onlySuperAdminOrAdmin
         zTokenExistsAndNotPaused(zAddress)
     {
-        ZionodesToken token = _zTokens[zAddress].token;
-        token.mint(account, amount);
+        _zTokens[zAddress].token.mint(account, amount);
     }
 
     function setupWeiPriceForZToken(address zAddress, uint256 weiPrice)
@@ -147,11 +133,8 @@ contract ZionodesTokenFactory is Pause {
         external
         onlySuperAdminOrAdmin
     {
-        require(paymentAddr != address(0), "Payment address can not be zero address");
-        require(
-            paymentAddr != paymentAddress,
-            "New payment address can not be the same as old payment address"
-        );
+        require(paymentAddr != address(0), "Zero address");
+        require(paymentAddr != paymentAddress, "Identical addresses");
 
         paymentAddress = paymentAddr;
     }
@@ -162,27 +145,16 @@ contract ZionodesTokenFactory is Pause {
         zTokenExistsAndNotPaused(zAddress)
         returns (bool)
     {
-        require(
-            _zTokens[zAddress].weiPrice > 0,
-            "Price not set"
-        );
+        require(_zTokens[zAddress].weiPrice > 0, "Price not set");
 
         uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
 
-        require(
-            msg.value == _zTokens[zAddress].weiPrice.mul(amount),
-            "Not enough wei to buy tokens"
-        );
+        require(msg.value == _zTokens[zAddress].weiPrice.mul(amount), "Not enough wei");
 
-        require(
-            _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
-            "Token transfer failed"
-        );
+        _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals));
 
         if (paymentAddress != address(this)) {
-            address payable dst = address(uint160(paymentAddress));
-
-            dst.transfer(msg.value);
+            address(uint160(paymentAddress)).transfer(msg.value);
         }
 
         emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
@@ -200,23 +172,17 @@ contract ZionodesTokenFactory is Pause {
         zTokenExistsAndNotPaused(zAddress)
         returns (bool)
     {
-        require(
-            _zTokens[zAddress].prices[addr] > 0,
-            "Price not set"
-        );
+        require(_zTokens[zAddress].prices[addr] > 0, "Price not set");
 
         IZToken token = IZToken(addr);
         uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
-        uint256 totalERC20Price = _zTokens[zAddress].prices[addr].mul(amount);
 
-        require(
-            token.transferFrom(_msgSender(), paymentAddress, totalERC20Price),
-            "Token transfer failed"
+        token.transferFrom(
+            _msgSender(),
+            paymentAddress,
+            _zTokens[zAddress].prices[addr].mul(amount)
         );
-        require(
-            _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals)),
-            "Token transfer failed"
-        );
+        _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals));
 
         emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
 
@@ -226,12 +192,10 @@ contract ZionodesTokenFactory is Pause {
     function withdrawWei(address destination)
         external
         onlySuperAdminOrAdmin
-        onlyCorrectAddressForWithdraw(destination)
+        onlyCorrectAddress(destination)
         returns (bool)
     {
-        address payable dst = address(uint160(destination));
-
-        dst.transfer(address(this).balance);
+        address(uint160(destination)).transfer(address(this).balance);
 
         return true;
     }
@@ -239,30 +203,12 @@ contract ZionodesTokenFactory is Pause {
     function withdrawERC20Token(address addr, address destination)
         external
         onlySuperAdminOrAdmin
-        onlyCorrectAddressForWithdraw(destination)
+        onlyCorrectAddress(destination)
         returns (bool)
     {
         IZToken token = IZToken(addr);
 
-        token.transfer(destination, token.balanceOf(address(this)));
-
-        return true;
-    }
-
-    function getZTokenAddress(string memory zSymbol)
-        external
-        view
-        returns (address)
-    {
-        return _zTokenAdressess[zSymbol];
-    }
-
-    function getZTokenWeiPrice(address zAddress)
-        external
-        view
-        returns (uint256)
-    {
-        return _zTokens[zAddress].weiPrice;
+        return token.transfer(destination, token.balanceOf(address(this)));
     }
 
     function getZTokenPriceByERC20Token

@@ -36,10 +36,10 @@ contract("BPTStakingPool", (accounts) => {
       { from: bob }
     );
 
-    let tokenAddress1 = await tokenFactory.getZTokenAddress("S15+28", {
+    let tokenAddress1 = await tokenFactory._zTokenAdressess("S15+28", {
       from: bob,
     });
-    let tokenAddress2 = await tokenFactory.getZTokenAddress("S15+72", {
+    let tokenAddress2 = await tokenFactory._zTokenAdressess("S15+72", {
       from: bob,
     });
 
@@ -71,10 +71,10 @@ contract("BPTStakingPool", (accounts) => {
       { from: bob }
     );
 
-    let tokenAddress1 = await tokenFactory.getZTokenAddress("S15+28", {
+    let tokenAddress1 = await tokenFactory._zTokenAdressess("S15+28", {
       from: bob,
     });
-    let tokenAddress2 = await tokenFactory.getZTokenAddress("S15+72", {
+    let tokenAddress2 = await tokenFactory._zTokenAdressess("S15+72", {
       from: bob,
     });
     let token = await ZionodesToken.at(tokenAddress1);
@@ -165,10 +165,10 @@ contract("BPTStakingPool", (accounts) => {
     await tokenFactory.deployZToken("S15+28 BPT", "BPT", 18, 0, { from: bob });
     await tokenFactory.deployZToken("Ren BTC", "renBTC", 8, 0, { from: bob });
 
-    let btp_address = await tokenFactory.getZTokenAddress("BPT", { from: bob });
+    let btp_address = await tokenFactory._zTokenAdressess("BPT", { from: bob });
     let bpt = await ZionodesToken.at(btp_address);
 
-    let renBTC_address = await tokenFactory.getZTokenAddress("renBTC", {
+    let renBTC_address = await tokenFactory._zTokenAdressess("renBTC", {
       from: bob,
     });
     let renBTC = await ZionodesToken.at(renBTC_address);

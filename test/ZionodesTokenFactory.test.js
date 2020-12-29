@@ -26,11 +26,11 @@ contract("ZionodesTokenFactory", (accounts) => {
     );
     await expectRevert(
       contract.setPaymentAddress(constants.ZERO_ADDRESS, { from: bob }),
-      "Payment address can not be zero address"
+      "Zero address"
     );
     await expectRevert(
       contract.setPaymentAddress(contract.address, { from: bob }),
-      "New payment address can not be the same as old payment address"
+      "Identical addresses"
     );
     await contract.setPaymentAddress(
       "0xf3e0d7bf58c5d455d31ef1c2d5375904df525105",
@@ -53,13 +53,9 @@ contract("ZionodesTokenFactory", (accounts) => {
       50,
       { from: bob }
     );
-    let address = await contract.getZTokenAddress("S15+28", { from: bob });
+    let address = await contract._zTokenAdressess("S15+28", { from: bob });
 
-    truffleAssert.eventEmitted(token, "ZTokenDeployed", (event) => {
-      return event.zAddress === address;
-    });
-
-    assert.equal(0, await contract.getZTokenAddress("S15"));
+    assert.equal(0, await contract._zTokenAdressess("S15"));
 
     await contract.addAdmin(alice, { from: bob });
 
@@ -73,11 +69,7 @@ contract("ZionodesTokenFactory", (accounts) => {
       50,
       { from: alice }
     );
-    address = await contract.getZTokenAddress("S17+28", { from: alice });
-
-    truffleAssert.eventEmitted(token, "ZTokenDeployed", (event) => {
-      return event.zAddress === address;
-    });
+    address = await contract._zTokenAdressess("S17+28", { from: alice });
   });
 
   it("set price for ZToken and check it", async () => {
@@ -88,7 +80,7 @@ contract("ZionodesTokenFactory", (accounts) => {
       from: bob,
     });
 
-    zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
+    zAddress = await contract._zTokenAdressess("S15+28", { from: bob });
 
     await contract.setupERC20PricesForZToken(
       zAddress,
@@ -114,7 +106,7 @@ contract("ZionodesTokenFactory", (accounts) => {
         BigInt(2.2 * 10 ** 18),
         { from: bob }
       ),
-      "Token is not deployed yet."
+      "Token isn't deployed"
     );
 
     price = await contract.getZTokenPriceByERC20Token(
@@ -132,8 +124,8 @@ contract("ZionodesTokenFactory", (accounts) => {
       "0xf3e0d7bf58c5d455d31ef1c2d5375904df525000"
     ); // Non-existent address
     assert.equal(price, 0);
-    price = await contract.getZTokenWeiPrice(zAddress);
-    assert.equal(price, BigInt(1.8 * 10 ** 18));
+    price = await contract._zTokens(zAddress);
+    assert.equal(price[1], BigInt(1.8 * 10 ** 18));
   });
 
   it("minting", async () => {
@@ -144,7 +136,7 @@ contract("ZionodesTokenFactory", (accounts) => {
       from: bob,
     });
 
-    zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
+    zAddress = await contract._zTokenAdressess("S15+28", { from: bob });
     token = await ZionodesToken.at(zAddress);
 
     assert.equal(true, await token.isSuperAdmin(bob, { from: bob }));
@@ -178,8 +170,8 @@ contract("ZionodesTokenFactory", (accounts) => {
       from: bob,
     });
 
-    let s15_address = await contract.getZTokenAddress("S15+28", { from: bob });
-    let s17_address = await contract.getZTokenAddress("S17+64", { from: bob });
+    let s15_address = await contract._zTokenAdressess("S15+28", { from: bob });
+    let s17_address = await contract._zTokenAdressess("S17+64", { from: bob });
     let s15_token = await ZionodesToken.at(s15_address);
     let s17_token = await ZionodesToken.at(s17_address);
 
@@ -202,7 +194,7 @@ contract("ZionodesTokenFactory", (accounts) => {
         from: alice,
         value: web3.utils.toWei("1.8", "ether"),
       }),
-      "Not enough wei to buy tokens"
+      "Not enough wei"
     );
     await contract.buyZTokenUsingWei(s15_address, 20, {
       from: alice,
@@ -278,11 +270,11 @@ contract("ZionodesTokenFactory", (accounts) => {
     );
     await utils.shouldThrow(
       contract.withdrawWei(constants.ZERO_ADDRESS, { from: bob }),
-      "Withdraw address can not be zero address"
+      "Zero address"
     );
     await utils.shouldThrow(
       contract.withdrawWei(contract.address, { from: bob }),
-      "Withdraw address can not be tha same as current contract address"
+      "Identical addresses"
     );
     await contract.withdrawWei(bob, { from: bob });
 

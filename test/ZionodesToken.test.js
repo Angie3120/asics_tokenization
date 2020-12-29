@@ -18,7 +18,7 @@ contract("ZionodesToken", (accounts) => {
       from: bob,
     });
 
-    let zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
+    let zAddress = await contract._zTokenAdressess("S15+28", { from: bob });
     let token = await ZionodesToken.at(zAddress);
 
     assert.equal("Bitmain Antminer S15+28", await token.name());
@@ -37,7 +37,7 @@ contract("ZionodesToken", (accounts) => {
       { from: bob }
     );
 
-    let zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
+    let zAddress = await contract._zTokenAdressess("S15+28", { from: bob });
     let token = await ZionodesToken.at(zAddress);
 
     await token.setCollector(token.address, { from: bob });
@@ -143,7 +143,7 @@ contract("ZionodesToken", (accounts) => {
       { from: bob }
     );
 
-    let zAddress = await contract.getZTokenAddress("S15+28", { from: bob });
+    let zAddress = await contract._zTokenAdressess("S15+28", { from: bob });
     let token = await ZionodesToken.at(zAddress);
 
     await utils.shouldThrow(

@@ -2,16 +2,17 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "./ZionodesToken.sol";
-
-import "./interfaces/IZToken.sol";
 
 import "./utils/Pause.sol";
 
 contract ZionodesTokenFactory is Pause {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     struct ZToken {
         ZionodesToken token;
@@ -25,16 +26,8 @@ contract ZionodesTokenFactory is Pause {
         address addr;
     }
 
-    struct ZTokenInfo {
-        address zAddress;
-        string zName;
-        string zSymbol;
-        uint256 decimals;
-    }
-
     address public paymentAddress;
-
-    ZTokenInfo[] public _zTokensInfo;
+    address[] public _zAddresses;
 
     mapping(address => ZToken) public _zTokens;
     mapping(string => address) public _zTokenAdressess;
@@ -57,36 +50,24 @@ contract ZionodesTokenFactory is Pause {
         _;
     }
 
-    constructor ()
-        Roles([_msgSender(), address(this), address(0)])
-    {
+    constructor() Roles([msg.sender, address(this), address(0)]) {
         paymentAddress = address(this);
     }
 
-    function deployZToken
-    (
+    function deployZToken(
         string memory zName,
         string memory zSymbol,
         uint8 decimals,
         uint256 totalSupply
-    )
-        external
-        onlySuperAdminOrAdmin
-        returns (address)
-    {
+    ) external onlySuperAdminOrAdmin returns (address) {
         require(
             _zTokenAdressess[zSymbol] == address(0) ||
-            _zTokens[_zTokenAdressess[zSymbol]].token.paused(),
+                _zTokens[_zTokenAdressess[zSymbol]].token.paused(),
             "Token exists and not paused"
         );
 
-        ZionodesToken tok = new ZionodesToken(
-            zName,
-            zSymbol,
-            decimals,
-            totalSupply,
-            owner()
-        );
+        ZionodesToken tok =
+            new ZionodesToken(zName, zSymbol, decimals, totalSupply, owner());
 
         ZToken storage zToken = _zTokens[address(tok)];
         zToken.token = tok;
@@ -94,16 +75,16 @@ contract ZionodesTokenFactory is Pause {
         zToken.initialized = true;
 
         _zTokenAdressess[zSymbol] = address(tok);
-        _zTokensInfo.push(ZTokenInfo(address(tok), zName, zSymbol, decimals));
+        _zAddresses.push(address(tok));
 
         return address(tok);
     }
 
-    function mintZTokens(address zAddress, address account, uint256 amount)
-        external
-        onlySuperAdminOrAdmin
-        zTokenExistsAndNotPaused(zAddress)
-    {
+    function mintZTokens(
+        address zAddress,
+        address account,
+        uint256 amount
+    ) external onlySuperAdminOrAdmin zTokenExistsAndNotPaused(zAddress) {
         _zTokens[zAddress].token.mint(account, amount);
     }
 
@@ -115,11 +96,7 @@ contract ZionodesTokenFactory is Pause {
         _zTokens[zAddress].weiPrice = weiPrice;
     }
 
-    function setupERC20PricesForZToken
-    (
-        address zAddress,
-        Price[] memory prices
-    )
+    function setupERC20PricesForZToken(address zAddress, Price[] memory prices)
         external
         onlySuperAdminOrAdmin
         zTokenExistsAndNotPaused(zAddress)
@@ -149,42 +126,45 @@ contract ZionodesTokenFactory is Pause {
 
         uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
 
-        require(msg.value == _zTokens[zAddress].weiPrice.mul(amount), "Not enough wei");
+        require(
+            msg.value == _zTokens[zAddress].weiPrice.mul(amount),
+            "Not enough wei"
+        );
 
-        _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals));
+        _zTokens[zAddress].token.transfer(
+            msg.sender,
+            amount.mul(10**tokenDecimals)
+        );
 
         if (paymentAddress != address(this)) {
             address(uint160(paymentAddress)).transfer(msg.value);
         }
 
-        emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
+        emit ZTokenSold(zAddress, msg.sender, amount.mul(10**tokenDecimals));
 
         return true;
     }
 
-    function buyZTokenUsingERC20Token
-    (
+    function buyZTokenUsingERC20Token(
         address zAddress,
         address addr,
         uint256 amount
-    )
-        external
-        zTokenExistsAndNotPaused(zAddress)
-        returns (bool)
-    {
+    ) external zTokenExistsAndNotPaused(zAddress) returns (bool) {
         require(_zTokens[zAddress].prices[addr] > 0, "Price not set");
 
-        IZToken token = IZToken(addr);
         uint256 tokenDecimals = _zTokens[zAddress].token.decimals();
 
-        token.transferFrom(
-            _msgSender(),
+        IERC20(addr).safeTransferFrom(
+            msg.sender,
             paymentAddress,
             _zTokens[zAddress].prices[addr].mul(amount)
         );
-        _zTokens[zAddress].token.transfer(_msgSender(), amount.mul(10 ** tokenDecimals));
+        _zTokens[zAddress].token.transfer(
+            msg.sender,
+            amount.mul(10**tokenDecimals)
+        );
 
-        emit ZTokenSold(zAddress, _msgSender(), amount.mul(10 ** tokenDecimals));
+        emit ZTokenSold(zAddress, msg.sender, amount.mul(10**tokenDecimals));
 
         return true;
     }
@@ -206,16 +186,15 @@ contract ZionodesTokenFactory is Pause {
         onlyCorrectAddress(destination)
         returns (bool)
     {
-        IZToken token = IZToken(addr);
+        IERC20(addr).safeTransfer(
+            destination,
+            IERC20(addr).balanceOf(address(this))
+        );
 
-        return token.transfer(destination, token.balanceOf(address(this)));
+        return true;
     }
 
-    function getZTokenPriceByERC20Token
-    (
-        address zAddress,
-        address addr
-    )
+    function getZTokenPriceByERC20Token(address zAddress, address addr)
         external
         view
         returns (uint256)
@@ -223,11 +202,7 @@ contract ZionodesTokenFactory is Pause {
         return _zTokens[zAddress].prices[addr];
     }
 
-    function getZTokensInfo()
-        external
-        view
-        returns (ZTokenInfo[] memory)
-    {
-        return _zTokensInfo;
+    function getZAddresses() external view returns (address[] memory) {
+        return _zAddresses;
     }
 }

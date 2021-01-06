@@ -11,7 +11,7 @@ import "./utils/Pause.sol";
 contract BPTStakingPool is Context, Pause {
     using SafeMath for uint256;
 
-    uint256 public constant BIG_NUMBER = 10 ** 18;
+    uint256 public constant BIG_NUMBER = 10**18;
 
     address public _bpt;
     address public _factory;
@@ -27,15 +27,24 @@ contract BPTStakingPool is Context, Pause {
 
     event Staked(address indexed account, uint256 amount);
     event Unstaked(address indexed account, uint256 amount);
-    event Claimed(address indexed account, address indexed recipient, uint256 amount);
+    event Claimed(
+        address indexed account,
+        address indexed recipient,
+        uint256 amount
+    );
     event Distributed(uint256 amount);
 
-    constructor(address bpt, address renBTCAddress, address factoryAdmin)
-        Roles([factoryAdmin, _msgSender(), address(this)])
-    {
+    constructor(
+        address bpt,
+        address renBTCAddress,
+        address factoryAdmin
+    ) Roles([factoryAdmin, _msgSender(), address(this)]) {
         require(bpt != address(0), "BPT: can not be zero address");
         require(renBTCAddress != address(0), "renBTC: can not be zero address");
-        require(bpt != renBTCAddress, "BPT address can not be the same as renBTC address");
+        require(
+            bpt != renBTCAddress,
+            "BPT address can not be the same as renBTC address"
+        );
 
         _bpt = bpt;
         _renBTCAddress = renBTCAddress;
@@ -43,10 +52,7 @@ contract BPTStakingPool is Context, Pause {
         _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
     }
 
-    function stake(uint256 amount)
-        external
-        returns (bool)
-    {
+    function stake(uint256 amount) external returns (bool) {
         require(amount != 0, "Stake: can not stake 0 tokens");
 
         IERC20 bpt = IERC20(_bpt);
@@ -70,10 +76,7 @@ contract BPTStakingPool is Context, Pause {
         return true;
     }
 
-    function unstake(uint256 amount)
-        external
-        returns (bool)
-    {
+    function unstake(uint256 amount) external returns (bool) {
         require(amount > 0, "Unstake: can not ustake 0 tokens");
         require(
             amount <= _stakes[_msgSender()],
@@ -82,7 +85,10 @@ contract BPTStakingPool is Context, Pause {
 
         claimReward(_msgSender());
 
-        require(safeTokenTransfer(_bpt, _msgSender(), amount), "Unstake: token transfer failed");
+        require(
+            safeTokenTransfer(_bpt, _msgSender(), amount),
+            "Unstake: token transfer failed"
+        );
 
         _stakes[_msgSender()] = _stakes[_msgSender()].sub(amount);
         _totalStaked = _totalStaked.sub(amount);
@@ -110,25 +116,28 @@ contract BPTStakingPool is Context, Pause {
         onlySuperAdminOrAdmin
         returns (bool)
     {
-        require(_totalStaked != 0, "Distribute: not a single token has been staked yet");
+        require(
+            _totalStaked != 0,
+            "Distribute: not a single token has been staked yet"
+        );
 
         distributeRewards();
 
         return true;
     }
 
-    function claimReward(address recipient)
-        public
-        returns (uint256)
-    {
+    function claimReward(address recipient) public returns (uint256) {
         distributeRewards();
 
-        require(recipient != address(0), "Claim: recipient can not be zero address");
-
-        uint256 amountOwedPerToken = _cummRewardPerStake.sub(
-            _accountCummRewardPerStake[_msgSender()]
+        require(
+            recipient != address(0),
+            "Claim: recipient can not be zero address"
         );
-        uint256 claimableAmount = _stakes[_msgSender()].mul(amountOwedPerToken).div(BIG_NUMBER);
+
+        uint256 amountOwedPerToken =
+            _cummRewardPerStake.sub(_accountCummRewardPerStake[_msgSender()]);
+        uint256 claimableAmount =
+            _stakes[_msgSender()].mul(amountOwedPerToken).div(BIG_NUMBER);
 
         require(
             safeTokenTransfer(_renBTCAddress, recipient, claimableAmount),
@@ -143,18 +152,20 @@ contract BPTStakingPool is Context, Pause {
         return claimableAmount;
     }
 
-    function distributeRewards()
-        internal
-        returns (bool)
-    {
-        uint256 rewards = IERC20(_renBTCAddress).balanceOf(address(this)).sub(_prevRenBTCBalance);
+    function distributeRewards() internal returns (bool) {
+        uint256 rewards =
+            IERC20(_renBTCAddress).balanceOf(address(this)).sub(
+                _prevRenBTCBalance
+            );
 
         if (rewards > 0) {
             uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
 
             _totalMinedRewards = _totalMinedRewards.add(rewards);
             _cummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
-            _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(address(this));
+            _prevRenBTCBalance = IERC20(_renBTCAddress).balanceOf(
+                address(this)
+            );
 
             emit Distributed(rewards);
         }
@@ -162,10 +173,11 @@ contract BPTStakingPool is Context, Pause {
         return true;
     }
 
-    function safeTokenTransfer(address tok, address recipient, uint256 amount)
-        internal
-        returns (bool)
-    {
+    function safeTokenTransfer(
+        address tok,
+        address recipient,
+        uint256 amount
+    ) internal returns (bool) {
         IERC20 token = IERC20(tok);
         uint256 tokenBalance = token.balanceOf(address(this));
 
@@ -178,11 +190,7 @@ contract BPTStakingPool is Context, Pause {
         return true;
     }
 
-    function getStake()
-        external
-        view
-        returns (uint256)
-    {
+    function getStake() external view returns (uint256) {
         return _stakes[_msgSender()];
     }
 
@@ -196,19 +204,20 @@ contract BPTStakingPool is Context, Pause {
     }
 
     function getClaimableRewards(address account)
-        view
         external
+        view
         returns (uint256)
     {
         if (_totalStaked > 0) {
-            uint256 rewards = IERC20(_renBTCAddress).balanceOf(address(this)).sub(
-                _prevRenBTCBalance
-            );
+            uint256 rewards =
+                IERC20(_renBTCAddress).balanceOf(address(this)).sub(
+                    _prevRenBTCBalance
+                );
             uint256 rewardAdded = rewards.mul(BIG_NUMBER).div(_totalStaked);
-            uint256 newCummRewardPerStake = _cummRewardPerStake.add(rewardAdded);
-            uint256 amountOwedPerToken = newCummRewardPerStake.sub(
-                _accountCummRewardPerStake[account]
-            );
+            uint256 newCummRewardPerStake =
+                _cummRewardPerStake.add(rewardAdded);
+            uint256 amountOwedPerToken =
+                newCummRewardPerStake.sub(_accountCummRewardPerStake[account]);
 
             return _stakes[account].mul(amountOwedPerToken).div(BIG_NUMBER);
         }

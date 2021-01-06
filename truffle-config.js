@@ -65,7 +65,7 @@ module.exports = {
           deployKey,
           "https://mainnet.infura.io/v3/" + projectId
         ),
-      gasPrice: 10000000000, // 10 gwei
+      gasPrice: 60000000000, // 60 gwei
       gas: 6900000,
       from: account,
       timeoutBlocks: 500,

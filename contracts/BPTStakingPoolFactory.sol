@@ -12,9 +12,7 @@ contract BPTStakingPoolFactory is Context, Pause {
 
     event BPTStakingPoolCreated(BPTStakingPool bptStakingPool);
 
-    constructor()
-        Roles([_msgSender(), address(this), address(0)])
-    { }
+    constructor() Roles([_msgSender(), address(this), address(0)]) {}
 
     function createBPTStakingPool(address bpt, address renBTCAddress)
         external
@@ -23,11 +21,8 @@ contract BPTStakingPoolFactory is Context, Pause {
         require(bpt != address(0), "Can not be zero address");
         require(bpt != address(this), "Can not be current contract address");
 
-        BPTStakingPool bptStakingPool = new BPTStakingPool(
-            bpt,
-            renBTCAddress,
-            owner()
-        );
+        BPTStakingPool bptStakingPool =
+            new BPTStakingPool(bpt, renBTCAddress, owner());
         _bptStakingPools.push(bptStakingPool);
 
         emit BPTStakingPoolCreated(bptStakingPool);

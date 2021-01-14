@@ -28,3 +28,10 @@ their share in the seeking.
 balance of available rewards, less maintenance, and electricity costs.
 
 ![plot](./photos/ZionodesTokenizationSchema.png)
+
+*Ren bridge technology is an open protocol providing access to inter-blockchain liquidity for all
+decentralized applications.
+
+In our project, we use only the part connecting the Bitcoin and Ethereum blockchains. Wrapped in a
+token in this way BTC becomes an ERC20 token renBTC, which corresponds to 1:1 BTC values. Thus, it
+is possible to accrue rewards using our smart contracts on the Ethereum blockchain.
